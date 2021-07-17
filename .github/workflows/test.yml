@@ -1,12 +1,18 @@
 name: Build & Test
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
 
 jobs:
   pre-commit:
-    # Do not run pull_request workflow if the head repo is not a fork
-    # These are already tested with the push event
-    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.head.repo.fork)
+    # Only run the `pull_request` workflow if the PR is "external" (from a fork)
+    # "Internal" pushes are already tested with the `push` event
+    if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.base.repo.id != github.event.head.repo.id)
 
     name: Run pre-commit
     runs-on: ubuntu-latest
