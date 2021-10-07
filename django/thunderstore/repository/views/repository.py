@@ -20,12 +20,14 @@ from thunderstore.community.models import (
     PackageListingReviewStatus,
     PackageListingSection,
 )
+from thunderstore.repository.exceptions import RedirectListingException
 from thunderstore.repository.models import (
     PackageVersion,
     UploaderIdentity,
     get_package_dependants,
 )
 from thunderstore.repository.package_upload import PackageUploadForm
+from thunderstore.repository.utils import get_listing
 
 # Should be divisible by 4 and 3
 MODS_PER_PAGE = 24
@@ -372,44 +374,23 @@ class PackageListByDependencyView(PackageListSearchView):
         return f"dependencies-{self.package_listing.package.id}"
 
 
-@cache_function_result(cache_until=CacheBustCondition.any_package_updated)
-def get_package_listing_or_404(
-    namespace: str,
-    name: str,
-    community_pk: int,
-) -> PackageListing:
-    owner = get_object_or_404(UploaderIdentity, name=namespace)
-    package_listing = (
-        PackageListing.objects.active()
-        .filter(
-            package__owner=owner,
-            package__name=name,
-            community=community_pk,
-        )
-        .select_related(
-            "package",
-            "package__owner",
-            "package__latest",
-        )
-        .prefetch_related(
-            "categories",
-        )
-        .first()
-    )
-    if not package_listing:
-        raise Http404("No matching package found")
-    return package_listing
-
-
 class PackageDetailView(DetailView):
     model = PackageListing
 
+    def get(self, *args, **kwargs):
+        try:
+            return super().get(*args, **kwargs)
+        except RedirectListingException as exc:
+            return redirect(exc.listing.get_full_url(), permanent=True)
+
     def get_object(self, *args, **kwargs):
-        listing = get_package_listing_or_404(
-            namespace=self.kwargs["owner"],
+        listing = get_listing(
+            owner=self.kwargs["owner"],
             name=self.kwargs["name"],
-            community_pk=self.request.community.pk,
+            community=self.request.community,
         )
+        if listing.community != self.request.community:
+            raise RedirectListingException(listing)
         if not listing.can_be_viewed_by_user(self.request.user):
             raise Http404("Package is waiting for approval or has been rejected")
         return listing
@@ -432,16 +413,23 @@ class PackageDetailView(DetailView):
 class PackageVersionDetailView(DetailView):
     model = PackageVersion
 
+    def get(self, *args, **kwargs):
+        try:
+            return super().get(*args, **kwargs)
+        except RedirectListingException as exc:
+            return redirect(exc.listing.get_full_url(), permanent=True)
+
     def get_object(self, *args, **kwargs):
         owner = self.kwargs["owner"]
         name = self.kwargs["name"]
         version = self.kwargs["version"]
-        listing = get_object_or_404(
-            PackageListing,
-            package__owner__name=owner,
-            package__name=name,
+        listing = get_listing(
+            owner=owner,
+            name=name,
             community=self.request.community,
         )
+        if listing.community != self.request.community:
+            raise RedirectListingException(listing)
         if not listing.can_be_viewed_by_user(self.request.user):
             raise Http404("Package is waiting for approval or has been rejected")
         if not listing.package.is_active:

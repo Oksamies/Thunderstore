@@ -2,13 +2,20 @@ from unittest import mock
 from urllib import request
 
 import pytest
+from django.contrib.sites.models import Site
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import Http404
+from django.test import override_settings
 from django.urls import reverse
 
 from thunderstore.core.factories import UserFactory
 
-from ...community.models import PackageListing, PackageListingReviewStatus
+from ...community.models import (
+    Community,
+    CommunitySite,
+    PackageListing,
+    PackageListingReviewStatus,
+)
 from ..factories import PackageFactory, PackageVersionFactory, UploaderIdentityFactory
 from ..models import UploaderIdentity
 from ..package_upload import PackageUploadForm
@@ -70,6 +77,29 @@ def test_package_list_view(client, community_site, ordering):
         assert f"test_{i}".encode("utf-8") in response.content
 
 
+@override_settings(ALLOWED_HOSTS=["testsite.test", "testsite2.test"])
+@pytest.mark.django_db
+def test_package_detail_view_community_redirect(
+    client, active_package_listing, community_site
+):
+    community_2 = Community.objects.create(name="Test2", identifier="test2")
+    site_2 = Site.objects.create(domain="testsite2.test", name="Testsite2")
+    community_site_2 = CommunitySite.objects.create(site=site_2, community=community_2)
+    response = client.get(
+        active_package_listing.package.get_absolute_url(),
+        HTTP_HOST=community_site.site.domain,
+    )
+    assert response.status_code == 200
+    response_text = response.content.decode("utf-8")
+    assert active_package_listing.package.name in response_text
+    assert active_package_listing.package.owner.name in response_text
+    response = client.get(
+        active_package_listing.package.get_absolute_url(),
+        HTTP_HOST=community_site_2.site.domain,
+    )
+    assert response.status_code == 301
+
+
 @pytest.mark.django_db
 def test_package_detail_view(client, active_package, community_site):
     response = client.get(
@@ -79,6 +109,29 @@ def test_package_detail_view(client, active_package, community_site):
     response_text = response.content.decode("utf-8")
     assert active_package.name in response_text
     assert active_package.owner.name in response_text
+
+
+@override_settings(ALLOWED_HOSTS=["testsite.test", "testsite2.test"])
+@pytest.mark.django_db
+def test_package_detail_version_view_community_redirect(
+    client, active_version_with_listing, community_site
+):
+    community_2 = Community.objects.create(name="Test2", identifier="test2")
+    site_2 = Site.objects.create(domain="testsite2.test", name="Testsite2")
+    community_site_2 = CommunitySite.objects.create(site=site_2, community=community_2)
+    response = client.get(
+        active_version_with_listing.package.versions.first().get_absolute_url(),
+        HTTP_HOST=community_site.site.domain,
+    )
+    assert response.status_code == 200
+    response_text = response.content.decode("utf-8")
+    assert active_version_with_listing.package.name in response_text
+    assert active_version_with_listing.package.owner.name in response_text
+    response = client.get(
+        active_version_with_listing.package.versions.first().get_absolute_url(),
+        HTTP_HOST=community_site_2.site.domain,
+    )
+    assert response.status_code == 301
 
 
 @pytest.mark.django_db

@@ -93,6 +93,9 @@ class PackageListing(TimestampMixin, models.Model):
             kwargs={"owner": self.package.owner.name, "name": self.package.name},
         )
 
+    def get_full_url(self):
+        return str(self.community.sites.first().full_url[:-1] + self.get_absolute_url())
+
     @cached_property
     def owner_url(self):
         return reverse(

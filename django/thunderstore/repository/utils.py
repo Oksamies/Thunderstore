@@ -1,5 +1,12 @@
-from typing import List
+from typing import List, Union
 
+from django.db.models import Q
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+
+from thunderstore.cache.cache import CacheBustCondition, cache_function_result
+from thunderstore.community.models import Community, PackageListing
+from thunderstore.repository.models import UploaderIdentity
 from thunderstore.repository.package_reference import PackageReference
 
 
@@ -56,3 +63,51 @@ def unpack_serializer_errors(field, errors, error_dict=None):
     else:
         error_dict[field] = str(errors)
     return error_dict
+
+
+@cache_function_result(cache_until=CacheBustCondition.any_package_updated)
+def get_listing(
+    owner: Union[UploaderIdentity, str, None],
+    name: Union[str, None],
+    community: Union[Community, None],
+) -> PackageListing:
+    if isinstance(owner, str):
+        owner = get_object_or_404(UploaderIdentity, name=owner)
+    filters = Q()
+    if owner:
+        filters.add(Q(package__owner=owner), Q.AND)
+    if name:
+        filters.add(Q(package__name=name), Q.AND)
+    if community:
+        filters.add(Q(community=community), Q.AND)
+    package_listing = (
+        PackageListing.objects.active()
+        .filter(filters)
+        .select_related(
+            "package",
+            "package__owner",
+            "package__latest",
+        )
+        .prefetch_related(
+            "categories",
+        )
+        .first()
+    )
+    # Try finding listing in another community
+    if not package_listing:
+        package_listing = (
+            PackageListing.objects.active()
+            .filter(Q(Q(package__owner=owner), Q(package__name=name)))
+            .select_related(
+                "package",
+                "package__owner",
+                "package__latest",
+            )
+            .prefetch_related(
+                "categories",
+            )
+            .first()
+        )
+    if not package_listing:
+        raise Http404("No matching package found")
+    return package_listing
