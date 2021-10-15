@@ -213,14 +213,28 @@ def test_package_detail_version_view_get_object(
     mock_request.user = uploader_identity_member.user
     mock_request.community = community_site.community
     view = PackageVersionDetailView(
-        kwargs={"owner": owner, "name": name, "version": version}, request=mock_request
+        kwargs={"owner": owner, "name": name, "version": version.version_number},
+        request=mock_request,
     )
+
+    found_version = view.get_object()
+    assert found_version == version
+
+    active_version_with_listing.is_active = False
+    active_version_with_listing.save()
+    with pytest.raises(Http404) as excinfo:
+        view.get_object()
+    assert "No matching package found" in str(excinfo.value)
+    active_version_with_listing.is_active = True
+    active_version_with_listing.save()
 
     active_version_with_listing.package.is_active = False
     active_version_with_listing.package.save()
     with pytest.raises(Http404) as excinfo:
         view.get_object()
-    assert "Main package is deactivated" in str(excinfo.value)
+    assert "No matching package found" in str(excinfo.value)
+    active_version_with_listing.package.is_active = True
+    active_version_with_listing.package.save()
 
     community_site.community.require_package_listing_approval = True
     community_site.community.save()
