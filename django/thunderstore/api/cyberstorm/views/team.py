@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db.models import Q, QuerySet
 from django.http import HttpRequest
 from rest_framework import serializers
@@ -22,8 +21,6 @@ from thunderstore.api.utils import (
 )
 from thunderstore.repository.forms import AddTeamMemberForm, CreateTeamForm
 from thunderstore.repository.models.team import Team, TeamMember
-
-User = get_user_model()
 
 
 class TeamAPIView(CyberstormAutoSchemaMixin, RetrieveAPIView):
