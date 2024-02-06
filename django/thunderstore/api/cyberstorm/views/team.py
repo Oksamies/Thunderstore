@@ -19,7 +19,14 @@ from thunderstore.api.utils import (
     CyberstormAutoSchemaMixin,
     conditional_swagger_auto_schema,
 )
-from thunderstore.repository.forms import AddTeamMemberForm, CreateTeamForm
+from thunderstore.repository.forms import (
+    AddTeamMemberForm,
+    CreateTeamForm,
+    DisbandTeamForm,
+    DonationLinkTeamForm,
+    EditTeamMemberForm,
+    RemoveTeamMemberForm,
+)
 from thunderstore.repository.models.team import Team, TeamMember
 
 
@@ -150,3 +157,176 @@ class TeamServiceAccountListAPIView(CyberstormAutoSchemaMixin, TeamRestrictedAPI
         return ServiceAccount.objects.exclude(
             ~Q(owner__name__iexact=self.kwargs["team_id"]),
         ).select_related("user")
+
+
+class CyberstormEditTeamRequestSerialiazer(serializers.Serializer):
+    donation_link = serializers.CharField(
+        max_length=Team._meta.get_field("donation_link").max_length,
+        validators=Team._meta.get_field("donation_link").validators,
+    )
+
+
+class CyberstormEditTeamResponseSerialiazer(serializers.Serializer):
+    donation_link = serializers.CharField()
+
+
+class EditTeamAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @conditional_swagger_auto_schema(
+        request_body=CyberstormEditTeamRequestSerialiazer,
+        responses={200: CyberstormEditTeamResponseSerialiazer},
+        operation_id="cyberstorm.team.edit",
+        tags=["cyberstorm"],
+    )
+    def post(self, request: HttpRequest, team_name: str):
+        serializer = CyberstormEditTeamRequestSerialiazer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        team = get_object_or_404(Team, name__iexact=team_name)
+        form = DonationLinkTeamForm(
+            user=request.user,
+            instance=team,
+            data=serializer.validated_data,
+        )
+
+        if form.is_valid():
+            team = form.save()
+            return Response(CyberstormEditTeamResponseSerialiazer(team).data)
+        else:
+            raise ValidationError(form.errors)
+
+
+class CyberstormDisbandTeamRequestSerialiazer(serializers.Serializer):
+    verification = serializers.CharField()
+
+
+class CyberstormDisbandTeamResponseSerialiazer(serializers.Serializer):
+    name = serializers.CharField()
+
+
+class DisbandTeamAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @conditional_swagger_auto_schema(
+        request_body=CyberstormDisbandTeamRequestSerialiazer,
+        responses={200: CyberstormDisbandTeamResponseSerialiazer},
+        operation_id="cyberstorm.team.disband",
+        tags=["cyberstorm"],
+    )
+    def post(self, request: HttpRequest, team_name: str):
+        serializer = CyberstormDisbandTeamRequestSerialiazer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        team = get_object_or_404(Team, name__iexact=team_name)
+
+        form = DisbandTeamForm(
+            user=request.user,
+            instance=team,
+            data=serializer.validated_data,
+        )
+
+        if form.is_valid():
+            form.save()
+            return Response(
+                CyberstormDisbandTeamResponseSerialiazer({"name": team_name}).data
+            )
+        else:
+            raise ValidationError(form.errors)
+
+
+class CyberstormRemoveTeamMemberRequestSerialiazer(serializers.Serializer):
+    username = serializers.CharField()
+
+
+class CyberstormRemoveTeamMemberResponseSerialiazer(serializers.Serializer):
+    username = serializers.CharField()
+    team_name = serializers.CharField()
+
+
+class RemoveTeamMemberAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @conditional_swagger_auto_schema(
+        request_body=CyberstormRemoveTeamMemberRequestSerialiazer,
+        responses={200: CyberstormRemoveTeamMemberResponseSerialiazer},
+        operation_id="cyberstorm.team.members.remove",
+        tags=["cyberstorm"],
+    )
+    def post(self, request: HttpRequest, team_name: str):
+        team = get_object_or_404(Team, name__iexact=team_name)
+
+        serializer = CyberstormRemoveTeamMemberRequestSerialiazer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        team_member = get_object_or_404(
+            TeamMember,
+            user__username__iexact=serializer.validated_data["username"],
+            team=team,
+        )
+
+        membership = team.get_membership_for_user(team_member.user)
+
+        form = RemoveTeamMemberForm(
+            user=request.user,
+            data={"membership": membership},
+        )
+
+        if form.is_valid():
+            form.save()
+            return Response(
+                CyberstormRemoveTeamMemberResponseSerialiazer(
+                    {
+                        "username": serializer.validated_data["username"],
+                        "team_name": team_name,
+                    }
+                ).data
+            )
+        else:
+            raise ValidationError(form.errors)
+
+
+class CyberstormEditTeamMemberRequestSerialiazer(serializers.Serializer):
+    username = serializers.CharField()
+    role = serializers.ChoiceField(
+        choices=EditTeamMemberForm.base_fields["role"].choices
+    )
+
+
+class CyberstormEditTeamMemberResponseSerialiazer(serializers.Serializer):
+    username = serializers.CharField(source="user")
+    role = serializers.ChoiceField(
+        choices=EditTeamMemberForm.base_fields["role"].choices
+    )
+    team_name = serializers.CharField(source="team")
+
+
+class EditTeamMemberAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @conditional_swagger_auto_schema(
+        request_body=CyberstormEditTeamMemberRequestSerialiazer,
+        responses={200: CyberstormEditTeamMemberResponseSerialiazer},
+        operation_id="cyberstorm.team.members.edit",
+        tags=["cyberstorm"],
+    )
+    def post(self, request: HttpRequest, team_name: str):
+        serializer = CyberstormEditTeamMemberRequestSerialiazer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        team_member = get_object_or_404(
+            TeamMember,
+            user__username__iexact=request.data["username"],
+            team__name__iexact=team_name,
+        )
+        form = EditTeamMemberForm(
+            user=request.user,
+            instance=team_member,
+            data=serializer.validated_data,
+        )
+
+        if form.is_valid():
+            team_member = form.save()
+            return Response(
+                CyberstormEditTeamMemberResponseSerialiazer(team_member).data
+            )
+        else:
+            raise ValidationError(form.errors)

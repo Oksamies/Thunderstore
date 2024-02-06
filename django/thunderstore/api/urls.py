@@ -4,6 +4,9 @@ from thunderstore.api.cyberstorm.views import (
     CommunityAPIView,
     CommunityFiltersAPIView,
     CommunityListAPIView,
+    DisbandTeamAPIView,
+    EditTeamAPIView,
+    EditTeamMemberAPIView,
     PackageListingAPIView,
     PackageListingByCommunityListAPIView,
     PackageListingByDependencyListAPIView,
@@ -11,6 +14,7 @@ from thunderstore.api.cyberstorm.views import (
     PackageVersionChangelogAPIView,
     PackageVersionListAPIView,
     PackageVersionReadmeAPIView,
+    RemoveTeamMemberAPIView,
     TeamAPIView,
     TeamCreateAPIView,
     TeamMemberAddAPIView,
@@ -109,5 +113,25 @@ cyberstorm_urls = [
         "current-user/delete/",
         UserDeleteAPIView.as_view(),
         name="cyberstorm.current-user.delete",
+    ),
+    path(
+        "team/<str:team_name>/edit/",
+        EditTeamAPIView.as_view(),
+        name="cyberstorm.team.edit",
+    ),
+    path(
+        "team/<str:team_name>/disband/",
+        DisbandTeamAPIView.as_view(),
+        name="cyberstorm.team.disband",
+    ),
+    path(
+        "team/<str:team_name>/members/remove/",
+        RemoveTeamMemberAPIView.as_view(),
+        name="cyberstorm.team.members.remove",
+    ),
+    path(
+        "team/<str:team_name>/members/edit/",
+        EditTeamMemberAPIView.as_view(),
+        name="cyberstorm.team.members.edit",
     ),
 ]
