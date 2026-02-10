@@ -1,3 +1,8 @@
+from .comments import (
+    CommentDeleteAPIView,
+    CommentRestoreAPIView,
+    ListingCommentListAPIView,
+)
 from .community import CommunityAPIView
 from .community_filters import CommunityFiltersAPIView
 from .community_list import CommunityListAPIView
@@ -42,6 +47,9 @@ __all__ = [
     "CommunityAPIView",
     "CommunityFiltersAPIView",
     "CommunityListAPIView",
+    "CommentDeleteAPIView",
+    "CommentRestoreAPIView",
+    "ListingCommentListAPIView",
     "CreateServiceAccountAPIView",
     "DeleteServiceAccountAPIView",
     "DeleteUserAPIView",

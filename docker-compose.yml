@@ -12,6 +12,8 @@ x-django-service: &django-service
     CELERY_BROKER_URL: "pyamqp://django:django@rabbitmq/django"
     CELERY_QUEUES: "celery,background.cache,background.task,background.long_running,log.downloads,analytics"
     DATABASE_URL: "psql://django:django@dbpool/django"
+    DATABASE_URL_COMMENTS: "psql://django:django@db-comments/comments"
+    DATABASE_URL_TICKETS: "psql://django:django@db-tickets/tickets"
     REDIS_URL: "redis://redis:6379/0"
     REDIS_URL_LEGACY: "redis://redis:6379/1"
     REDIS_URL_PROFILES: "redis://redis:6379/2"
@@ -74,6 +76,24 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
       - "./db-mount:/db-mount"
+
+  db-comments:
+    image: postgres:13.12-alpine
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: comments
+    volumes:
+      - db-comments-data:/var/lib/postgresql/data
+
+  db-tickets:
+    image: postgres:13.12-alpine
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: tickets
+    volumes:
+      - db-tickets-data:/var/lib/postgresql/data
 
   dbpool:
     image: edoburu/pgbouncer:1.15.0@sha256:2f47bf272fa9fdf25c100d11f1972b23af61a351a136d3721bfa6bdb52630426
@@ -156,6 +176,8 @@ services:
 
 volumes:
   db-data:
+  db-comments-data:
+  db-tickets-data:
   django-data:
   minio-data:
   built-static:

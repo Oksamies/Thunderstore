@@ -2,6 +2,8 @@ from django.urls import path
 
 from thunderstore.api.cyberstorm.views import (
     ApprovePackageListingAPIView,
+    CommentDeleteAPIView,
+    CommentRestoreAPIView,
     CommunityAPIView,
     CommunityFiltersAPIView,
     CommunityListAPIView,
@@ -11,6 +13,7 @@ from thunderstore.api.cyberstorm.views import (
     DeprecatePackageAPIView,
     DisbandTeamAPIView,
     DisconnectUserLinkedAccountAPIView,
+    ListingCommentListAPIView,
     PackageListingAPIView,
     PackageListingByCommunityListAPIView,
     PackageListingByDependencyListAPIView,
@@ -36,6 +39,14 @@ from thunderstore.api.cyberstorm.views import (
     UpdateTeamAPIView,
     UpdateTeamMemberAPIView,
 )
+from thunderstore.api.cyberstorm.views.tickets import (
+    ListingTicketListAPIView,
+    TicketMessagesAPIView,
+    TicketNoteCreateAPIView,
+    TicketStatusUpdateAPIView,
+    TicketTemplateViewSet,
+    TicketViewSet,
+)
 from thunderstore.plugins.registry import plugin_registry
 
 cyberstorm_urls = [
@@ -53,6 +64,16 @@ cyberstorm_urls = [
         "community/<str:community_id>/filters/",
         CommunityFiltersAPIView.as_view(),
         name="cyberstorm.community.filters",
+    ),
+    path(
+        "comments/<uuid:uuid>/",
+        CommentDeleteAPIView.as_view(),
+        name="cyberstorm.comments.delete",
+    ),
+    path(
+        "comments/<uuid:uuid>/restore/",
+        CommentRestoreAPIView.as_view(),
+        name="cyberstorm.comments.restore",
     ),
     path(
         "listing/<str:community_id>/",
@@ -223,6 +244,55 @@ cyberstorm_urls = [
         "team/<str:team_name>/member/<str:team_member>/update/",
         UpdateTeamMemberAPIView.as_view(),
         name="cyberstorm.team.member.update",
+    ),
+    # Tickets
+    path(
+        "tickets/<uuid:uuid>/",
+        TicketViewSet.as_view({"get": "retrieve"}),
+        name="cyberstorm.tickets.detail",
+    ),
+    path(
+        "tickets/",
+        TicketViewSet.as_view({"get": "list"}),
+        name="cyberstorm.tickets.list",
+    ),
+    path(
+        "tickets/<uuid:uuid>/messages/",
+        TicketMessagesAPIView.as_view(),
+        name="cyberstorm.tickets.messages.create",
+    ),
+    path(
+        "tickets/<uuid:uuid>/notes/",
+        TicketNoteCreateAPIView.as_view(),
+        name="cyberstorm.tickets.notes.create",
+    ),
+    path(
+        "tickets/<uuid:uuid>/status/",
+        TicketStatusUpdateAPIView.as_view(),
+        name="cyberstorm.tickets.status.update",
+    ),
+    # Listing Tickets
+    path(
+        "listing/<str:community_id>/<str:namespace_id>/<str:package_name>/tickets/",
+        ListingTicketListAPIView.as_view(),
+        name="cyberstorm.listing.tickets",
+    ),
+    # Listing Comments
+    path(
+        "listing/<str:community_id>/<str:namespace_id>/<str:package_name>/comments/",
+        ListingCommentListAPIView.as_view(),
+        name="cyberstorm.listing.comments",
+    ),
+    # Templates
+    path(
+        "community/<str:community_id>/templates/",
+        TicketTemplateViewSet.as_view({"get": "list", "post": "create"}),
+        name="cyberstorm.community.templates",
+    ),
+    path(
+        "community/<str:community_id>/templates/<uuid:uuid>/",
+        TicketTemplateViewSet.as_view({"patch": "partial_update", "delete": "destroy"}),
+        name="cyberstorm.community.templates.detail",
     ),
 ]
 

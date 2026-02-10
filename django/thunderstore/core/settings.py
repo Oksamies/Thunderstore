@@ -142,6 +142,7 @@ env = environ.Env(
     KAFKA_CONFIG_PATH=(str, "config/kafka.json"),
     # FEATURE FLAGS UNDER HERE
     IS_CYBERSTORM_ENABLED=(bool, False),
+    IS_TICKETS_ENABLED=(bool, True),
     SHOW_CYBERSTORM_API_DOCS=(bool, False),
     USE_ASYNC_PACKAGE_SUBMISSION_FLOW=(bool, False),
     USE_TIME_SERIES_PACKAGE_DOWNLOAD_METRICS=(bool, True),
@@ -197,8 +198,27 @@ DATABASES = {"default": env.db()}
 DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = env.bool(
     "DISABLE_SERVER_SIDE_CURSORS",
 )
+# comments database configuration
+if env.str("DATABASE_URL_COMMENTS", default=None):
+    DATABASES["comments"] = env.db("DATABASE_URL_COMMENTS")
+else:
+    # Fallback to default DB if no specific comments DB is configured
+    DATABASES["comments"] = DATABASES["default"].copy()
+
+# tickets database configuration
+if env.str("DATABASE_URL_TICKETS", default=None):
+    DATABASES["tickets"] = env.db("DATABASE_URL_TICKETS")
+else:
+    # Fallback to default DB if no specific tickets DB is configured
+    DATABASES["tickets"] = DATABASES["default"].copy()
+
+DATABASE_ROUTERS = [
+    "thunderstore.comments.router.CommentsRouter",
+    "thunderstore.tickets.router.TicketsRouter",
+]
 
 DB_CERT_DIR = env.str("DB_CERT_DIR")
+
 DB_CLIENT_CERT = env.str("DB_CLIENT_CERT")
 DB_CLIENT_KEY = env.str("DB_CLIENT_KEY")
 DB_SERVER_CA = env.str("DB_SERVER_CA")
@@ -240,7 +260,16 @@ def load_db_certs():
 
 load_db_certs()
 
+# Comments/Tickets DB configuration
+# For development and initial migration, we alias databases to the default database
+# unless it is explicitly defined.
+if "comments" not in DATABASES:
+    DATABASES["comments"] = DATABASES["default"]
+if "tickets" not in DATABASES:
+    DATABASES["tickets"] = DATABASES["default"]
+
 # Application definition
+
 
 INSTALLED_APPS = plugin_registry.get_installed_apps(
     [
@@ -288,6 +317,8 @@ INSTALLED_APPS = plugin_registry.get_installed_apps(
         "thunderstore.permissions",
         "thunderstore.ts_reports",
         "thunderstore.ts_analytics",
+        "thunderstore.tickets",
+        "thunderstore.comments",
     ]
 )
 
@@ -868,6 +899,9 @@ OVERWOLF_CLIENT_ID = env.str("OVERWOLF_CLIENT_ID")
 
 # Cyberstorm APIs enabled?
 IS_CYBERSTORM_ENABLED = env.bool("IS_CYBERSTORM_ENABLED")
+
+# Tickets system enabled?
+IS_TICKETS_ENABLED = env.bool("IS_TICKETS_ENABLED")
 
 # Enable QA API endpoint docs
 SHOW_CYBERSTORM_API_DOCS = env.bool("SHOW_CYBERSTORM_API_DOCS")

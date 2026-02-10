@@ -29,6 +29,8 @@ class Command(BaseCommand):
 
         self.stdout.write("Running migrations...")
         call_command("migrate")
+        call_command("migrate", database="comments")
+        call_command("migrate", database="tickets")
 
         if not options["skip_test_data"]:
             self.stdout.write("Populating test data...")

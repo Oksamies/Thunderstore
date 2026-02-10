@@ -52,6 +52,10 @@ class PackageListRequestSerializer(serializers.Serializer):
     page = serializers.IntegerField(default=1, min_value=1)
     q = serializers.CharField(required=False, help_text="Free text search")
     section = serializers.UUIDField(required=False)
+    status = serializers.ChoiceField(
+        choices=[x.value for x in PackageListingReviewStatus],
+        required=False,
+    )
 
 
 class PackageListResponseSerializer(serializers.Serializer):
@@ -145,7 +149,7 @@ class BasePackageListAPIView(PublicCacheMixin, ListAPIView):
         require_approval = community.require_package_listing_approval
         params = self._get_validated_query_params()
 
-        qs = filter_by_review_status(require_approval, queryset)
+        qs = filter_by_review_status(require_approval, queryset, params.get("status"))
         qs = filter_by_listed_in_community(community.identifier, qs)
         qs = filter_deprecated(params["deprecated"], qs)
         qs = filter_nsfw(params["nsfw"], qs)
@@ -249,6 +253,7 @@ class BasePackageListAPIView(PublicCacheMixin, ListAPIView):
                     "rating_count": listing.rating_count,
                     "size": package.latest.file_size,
                     "datetime_created": listing.datetime_created,
+                    "review_status": listing.review_status,
                 },
             )
 
@@ -476,7 +481,11 @@ def filter_by_query(
 def filter_by_review_status(
     require_approval: bool,
     queryset: QuerySet[PackageListing],
+    status: Optional[str] = None,
 ) -> QuerySet[PackageListing]:
+    if status is not None:
+        return queryset.filter(review_status=status)
+
     review_status_to_reject = [PackageListingReviewStatus.rejected]
     if require_approval:
         review_status_to_reject.append(PackageListingReviewStatus.unreviewed)

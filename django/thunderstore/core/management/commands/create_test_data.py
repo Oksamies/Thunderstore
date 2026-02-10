@@ -7,6 +7,7 @@ from thunderstore.core.management.commands.content.base import (
     ContentPopulator,
     ContentPopulatorContext,
 )
+from thunderstore.core.management.commands.content.comment import CommentPopulator
 from thunderstore.core.management.commands.content.community import CommunityPopulator
 from thunderstore.core.management.commands.content.community_site import (
     CommunitySitePopulator,
@@ -34,6 +35,7 @@ from thunderstore.core.management.commands.content.package_wiki_pages import (
     PackageWikiPagePopulator,
 )
 from thunderstore.core.management.commands.content.team import TeamPopulator
+from thunderstore.core.management.commands.content.ticket import TicketPopulator
 
 # In generation order; clearing order is inverted
 CONTENT_POPULATORS: Dict[str, Type[ContentPopulator]] = OrderedDict[
@@ -51,6 +53,8 @@ CONTENT_POPULATORS: Dict[str, Type[ContentPopulator]] = OrderedDict[
         ("contract_version", LegalContractVersionPopulator),
         ("package_wiki", PackageWikiPopulator),
         ("package_wiki_pages", PackageWikiPagePopulator),
+        ("ticket", TicketPopulator),
+        ("comment", CommentPopulator),
     ]
 )
 
