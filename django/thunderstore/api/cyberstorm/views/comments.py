@@ -12,13 +12,42 @@ from thunderstore.api.cyberstorm.views.package_listing_actions import (
     get_package_listing,
 )
 from thunderstore.api.utils import conditional_swagger_auto_schema, swagger_auto_schema
-from thunderstore.comments.models import Comment
+from thunderstore.comments.models import Comment, CommentReaction
 from thunderstore.comments.services import (
     create_comment,
     delete_comment,
     restore_comment,
 )
 from thunderstore.community.models import PackageListing
+
+
+class CommentReactionAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @conditional_swagger_auto_schema(
+        operation_id="cyberstorm.comments.reaction",
+        responses={200: "OK"},
+    )
+    def post(self, request, uuid):
+        comment = get_object_or_404(Comment, uuid=uuid)
+        reaction_type = request.data.get("reaction")
+
+        if not reaction_type or reaction_type not in dict(
+            CommentReaction.REACTION_CHOICES
+        ):
+            return Response(
+                {"error": "Invalid reaction type"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reaction, created = CommentReaction.objects.get_or_create(
+            comment=comment, author_id=request.user.id, reaction=reaction_type
+        )
+
+        if not created:
+            reaction.delete()
+            return Response({"status": "removed"}, status=status.HTTP_200_OK)
+
+        return Response({"status": "added"}, status=status.HTTP_200_OK)
 
 
 class CommentDeleteAPIView(APIView):
@@ -83,11 +112,15 @@ class ListingCommentListAPIView(APIView):
         )
         ct = ContentType.objects.get_for_model(PackageListing)
 
-        comments = Comment.objects.filter(
-            content_type=ct, object_id=listing.id
-        ).order_by("-datetime_created")
+        comments = (
+            Comment.objects.filter(content_type=ct, object_id=listing.id)
+            .prefetch_related("reactions")
+            .order_by("-datetime_created")
+        )
 
-        serializer = CommentSerializer(comments, many=True)
+        serializer = CommentSerializer(
+            comments, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @swagger_auto_schema(
@@ -125,4 +158,7 @@ class ListingCommentListAPIView(APIView):
             is_internal=validated_data.get("is_internal", False),
         )
 
-        return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+        return Response(
+            CommentSerializer(comment, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )

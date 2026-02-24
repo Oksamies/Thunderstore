@@ -1,5 +1,6 @@
 from .comments import (
     CommentDeleteAPIView,
+    CommentReactionAPIView,
     CommentRestoreAPIView,
     ListingCommentListAPIView,
 )
@@ -42,12 +43,14 @@ from .team import (
     UpdateTeamMemberAPIView,
 )
 from .user import DeleteUserAPIView, DisconnectUserLinkedAccountAPIView
+from .user_communities import UserCommunityListAPIView, UserModerationStatsAPIView
 
 __all__ = [
     "CommunityAPIView",
     "CommunityFiltersAPIView",
     "CommunityListAPIView",
     "CommentDeleteAPIView",
+    "CommentReactionAPIView",
     "CommentRestoreAPIView",
     "ListingCommentListAPIView",
     "CreateServiceAccountAPIView",
@@ -81,4 +84,6 @@ __all__ = [
     "ReportPackageListingAPIView",
     "UnlistPackageListingAPIView",
     "UpdateTeamMemberAPIView",
+    "UserCommunityListAPIView",
+    "UserModerationStatsAPIView",
 ]

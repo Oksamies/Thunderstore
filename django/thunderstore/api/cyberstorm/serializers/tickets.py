@@ -39,7 +39,9 @@ class TicketSerializer(serializers.ModelSerializer):
     def get_messages(self, obj):
         # If the view has attached comments, use them
         if hasattr(obj, "prefetched_comments"):
-            return [comment.uuid for comment in obj.prefetched_comments]
+            return [
+                CommentSerializer(comment).data for comment in obj.prefetched_comments
+            ]
         return []
 
 

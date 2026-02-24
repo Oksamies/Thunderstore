@@ -34,7 +34,9 @@ class Command(BaseCommand):
 
         if not options["skip_test_data"]:
             self.stdout.write("Populating test data...")
-            call_command("create_test_data", "--clear", "--reuse-icon")
+            call_command(
+                "create_test_data", "--clear", "--reuse-icon", "--user-count", "20"
+            )
 
         self.stdout.write("Creating Risk of Rain 2 community...")
         community, _ = Community.objects.get_or_create(

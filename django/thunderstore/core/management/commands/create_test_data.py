@@ -8,6 +8,9 @@ from thunderstore.core.management.commands.content.base import (
     ContentPopulatorContext,
 )
 from thunderstore.core.management.commands.content.comment import CommentPopulator
+from thunderstore.core.management.commands.content.comment_reaction import (
+    CommentReactionPopulator,
+)
 from thunderstore.core.management.commands.content.community import CommunityPopulator
 from thunderstore.core.management.commands.content.community_site import (
     CommunitySitePopulator,
@@ -25,6 +28,9 @@ from thunderstore.core.management.commands.content.package import PackagePopulat
 from thunderstore.core.management.commands.content.package_listing import (
     ListingPopulator,
 )
+from thunderstore.core.management.commands.content.package_rating import (
+    PackageRatingPopulator,
+)
 from thunderstore.core.management.commands.content.package_version import (
     PackageVersionPopulator,
 )
@@ -34,14 +40,17 @@ from thunderstore.core.management.commands.content.package_wiki import (
 from thunderstore.core.management.commands.content.package_wiki_pages import (
     PackageWikiPagePopulator,
 )
+from thunderstore.core.management.commands.content.review import ReviewPopulator
 from thunderstore.core.management.commands.content.team import TeamPopulator
 from thunderstore.core.management.commands.content.ticket import TicketPopulator
+from thunderstore.core.management.commands.content.user import UserPopulator
 
 # In generation order; clearing order is inverted
 CONTENT_POPULATORS: Dict[str, Type[ContentPopulator]] = OrderedDict[
     str, ContentPopulator
 ](
     [
+        ("user", UserPopulator),
         ("community", CommunityPopulator),
         ("community_site", CommunitySitePopulator),
         ("team", TeamPopulator),
@@ -53,8 +62,11 @@ CONTENT_POPULATORS: Dict[str, Type[ContentPopulator]] = OrderedDict[
         ("contract_version", LegalContractVersionPopulator),
         ("package_wiki", PackageWikiPopulator),
         ("package_wiki_pages", PackageWikiPagePopulator),
+        ("package_rating", PackageRatingPopulator),
         ("ticket", TicketPopulator),
+        ("review", ReviewPopulator),
         ("comment", CommentPopulator),
+        ("comment_reaction", CommentReactionPopulator),
     ]
 )
 
@@ -67,6 +79,7 @@ class Command(BaseCommand):
         super().__init__(*args, **kwargs)
 
     def add_arguments(self, parser) -> None:
+        parser.add_argument("--user-count", type=int, default=20)
         parser.add_argument("--community-count", type=int, default=20)
         parser.add_argument("--team-count", type=int, default=10)
         parser.add_argument("--package-count", type=int, default=1)
@@ -135,6 +148,7 @@ class Command(BaseCommand):
             self.clear()
 
         context = ContentPopulatorContext(
+            user_count=kwargs.get("user_count", 0),
             package_count=kwargs.get("package_count", 0),
             version_count=kwargs.get("version_count", 0),
             team_count=kwargs.get("team_count", 0),

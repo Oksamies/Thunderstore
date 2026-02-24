@@ -21,7 +21,9 @@ class ContentPopulatorContext:
     communities: Collection[Community] = field(default_factory=list)
     contracts: Collection[LegalContract] = field(default_factory=list)
     package_wikis: Collection[PackageWiki] = field(default_factory=list)
+    users: Collection[Model] = field(default_factory=list)
 
+    user_count: int = 0
     community_count: int = 0
     dependency_count: int = 0
     version_count: int = 0

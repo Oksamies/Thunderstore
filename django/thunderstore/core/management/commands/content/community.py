@@ -5,6 +5,10 @@ from thunderstore.core.management.commands.content.base import (
     ContentPopulator,
     ContentPopulatorContext,
 )
+from thunderstore.repository.models.cache import (
+    APIV1ChunkedPackageCache,
+    APIV1PackageCache,
+)
 from thunderstore.utils.iterators import print_progress
 
 
@@ -43,4 +47,12 @@ class CommunityPopulator(ContentPopulator):
 
     def clear(self) -> None:
         print("Deleting existing test communities...")
-        Community.objects.filter(name__startswith=self.name_prefix).delete()
+        qs = Community.objects.filter(name__startswith=self.name_prefix)
+
+        # Manually clear caches iteratively because S3FileMixin prevents bulk delete
+        for cache in APIV1PackageCache.objects.filter(community__in=qs):
+            cache.delete()
+        for cache in APIV1ChunkedPackageCache.objects.filter(community__in=qs):
+            cache.delete()
+
+        qs._raw_delete(using="default")

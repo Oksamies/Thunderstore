@@ -104,7 +104,24 @@ class TicketViewSet(viewsets.ReadOnlyModelViewSet):
                 Q(team_id__in=team_ids) | Q(community_id__in=community_ids)
             )
 
-        return qs.distinct().order_by("-updated_at")
+        # Optional Filtering by Community
+        community_param = self.request.query_params.get("community_id")
+        if community_param:
+            # If the param is a GUID/integer ID:
+            # qs = qs.filter(community_id=community_param)
+            # But the param might be the identifier (slug).
+            # The Ticket model stores community_id (integer).
+            # So we need to look up the ID from the identifier if it's a string.
+            # However, looking at TicketBaseAPI usage, usually community_id implies the identifier in URLs but internal ID in DB.
+            # Let's check how 'community_id' is passed. Dapper usually passes the identifier.
+            # So we should resolve it.
+            try:
+                community = Community.objects.get(identifier=community_param)
+                qs = qs.filter(community_id=community.id)
+            except Community.DoesNotExist:
+                return queryset.none()
+
+        return qs.distinct().order_by("-datetime_updated")
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

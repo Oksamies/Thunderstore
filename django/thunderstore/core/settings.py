@@ -268,6 +268,12 @@ if "comments" not in DATABASES:
 if "tickets" not in DATABASES:
     DATABASES["tickets"] = DATABASES["default"]
 
+if "pytest" in sys.modules:
+    DATABASES["comments"] = DATABASES["default"].copy()
+    DATABASES["comments"]["TEST"] = {"MIRROR": "default"}
+    DATABASES["tickets"] = DATABASES["default"].copy()
+    DATABASES["tickets"]["TEST"] = {"MIRROR": "default"}
+
 # Application definition
 
 

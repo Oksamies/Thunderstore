@@ -27,4 +27,9 @@ class CommunitySitePopulator(ContentPopulator):
         pass
 
     def clear(self) -> None:
-        pass
+        print("Deleting community sites...")
+        # Only delete sites that look like test data
+        CommunitySite.objects.filter(
+            site__domain__endswith=".thunderstore.localhost"
+        ).delete()
+        Site.objects.filter(domain__endswith=".thunderstore.localhost").delete()

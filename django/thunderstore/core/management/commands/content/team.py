@@ -36,7 +36,7 @@ class TeamPopulator(ContentPopulator):
             ]
 
     def clear(self) -> None:
-        print("Deleting existing teams...")
-        Team.objects.all().delete()
         print("Deleting existing namespaces...")
         Namespace.objects.all().delete()
+        print("Deleting existing teams...")
+        Team.objects.all()._raw_delete(using="default")

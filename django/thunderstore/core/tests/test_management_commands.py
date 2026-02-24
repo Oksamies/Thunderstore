@@ -173,6 +173,8 @@ def test_create_test_data_create_data(
         legal_contract_count,
         "--contract-version-count",
         legal_contract_version_count,
+        "--user-count",
+        2,
     ]
     call_command(*args)
     assert_counts()
@@ -226,6 +228,8 @@ def test_create_test_data_reuse_icon(reuse: bool) -> None:
         0,
         "--contract-version-count",
         0,
+        "--user-count",
+        2,
     ]
     if reuse:
         args.append("--reuse-icon")
@@ -286,7 +290,7 @@ def test_setup_dev_env_populates_sites_binds_community_and_creates_admin(
 
     # Verify command orchestration calls
     assert ("migrate",) in [c[0] for c in recorded_calls]
-    assert ("create_test_data", "--clear", "--reuse-icon") in [
+    assert ("create_test_data", "--clear", "--reuse-icon", "--user-count", "20") in [
         c[0] for c in recorded_calls
     ]
 

@@ -127,9 +127,27 @@ def delete_ghost_comments(dry_run=False):
                 logger.info(msg)
 
                 if not dry_run:
-                    cnt, _ = Comment.objects.filter(
+                    # Delete child comments first to avoid PROTECT foreign key errors
+                    ghost_comments = Comment.objects.filter(
                         content_type=ct, object_id__in=invalid_ids
-                    ).delete()
+                    )
+
+                    # Find all descendants of these ghost comments
+                    def get_all_descendants(comments):
+                        descendants = Comment.objects.filter(parent__in=comments)
+                        if descendants.exists():
+                            return descendants | get_all_descendants(descendants)
+                        return Comment.objects.none()
+
+                    all_descendants = get_all_descendants(ghost_comments)
+
+                    # Delete descendants first
+                    if all_descendants.exists():
+                        desc_cnt, _ = all_descendants.delete()
+                        deleted_count += desc_cnt
+
+                    # Then delete the ghost comments themselves
+                    cnt, _ = ghost_comments.delete()
                     deleted_count += cnt
                     logger.info(f"Deleted {cnt} ghost comments.")
 

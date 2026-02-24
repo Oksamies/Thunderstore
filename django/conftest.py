@@ -97,7 +97,7 @@ def http_server():
     thread.join()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases="__all__")
 @pytest.fixture(scope="session", autouse=True)
 def prime_testing_database(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():

@@ -3,6 +3,7 @@ from django.urls import path
 from thunderstore.api.cyberstorm.views import (
     ApprovePackageListingAPIView,
     CommentDeleteAPIView,
+    CommentReactionAPIView,
     CommentRestoreAPIView,
     CommunityAPIView,
     CommunityFiltersAPIView,
@@ -38,6 +39,8 @@ from thunderstore.api.cyberstorm.views import (
     UpdatePackageListingCategoriesAPIView,
     UpdateTeamAPIView,
     UpdateTeamMemberAPIView,
+    UserCommunityListAPIView,
+    UserModerationStatsAPIView,
 )
 from thunderstore.api.cyberstorm.views.tickets import (
     ListingTicketListAPIView,
@@ -69,6 +72,11 @@ cyberstorm_urls = [
         "comments/<uuid:uuid>/",
         CommentDeleteAPIView.as_view(),
         name="cyberstorm.comments.delete",
+    ),
+    path(
+        "comments/<uuid:uuid>/reaction/",
+        CommentReactionAPIView.as_view(),
+        name="cyberstorm.comments.reaction",
     ),
     path(
         "comments/<uuid:uuid>/restore/",
@@ -229,6 +237,16 @@ cyberstorm_urls = [
         "service-account/<uuid:uuid>/delete/",
         DeleteServiceAccountAPIView.as_view(),
         name="cyberstorm.service-account.delete",
+    ),
+    path(
+        "user/communities/",
+        UserCommunityListAPIView.as_view(),
+        name="cyberstorm.user.communities",
+    ),
+    path(
+        "user/moderation-stats/",
+        UserModerationStatsAPIView.as_view(),
+        name="cyberstorm.user.moderation-stats",
     ),
     path(
         "user/delete/",

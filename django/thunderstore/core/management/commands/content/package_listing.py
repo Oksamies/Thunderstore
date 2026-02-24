@@ -31,4 +31,18 @@ class ListingPopulator(ContentPopulator):
 
     def clear(self) -> None:
         print("Deleting existing package listings...")
-        PackageListing.objects.all().delete()
+
+        # Workaround for cross-db relation issues with tickets
+        try:
+            # Just in case tickets weren't cleared properly or if Django attempts to check anyway
+            from thunderstore.tickets.models import Ticket
+
+            Ticket.objects.all().delete()
+        except Exception:
+            pass
+
+        # Clear M2M relations manually first
+        PackageListing.categories.through.objects.all().delete()
+
+        # Use _raw_delete to avoid cross-db cascade checks (specifically for tickets)
+        PackageListing.objects.all()._raw_delete(using="default")

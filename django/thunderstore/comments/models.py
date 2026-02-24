@@ -42,3 +42,27 @@ class Comment(TimestampMixin, models.Model):
         ]
         # TimestampMixin usually handles ordering if needed, but we can be explicit
         ordering = ["datetime_created"]
+
+
+class CommentReaction(TimestampMixin, models.Model):
+    REACTION_CHOICES = [
+        ("thumbs_up", "Thumbs Up"),
+        ("thumbs_down", "Thumbs Down"),
+        ("heart", "Heart"),
+        ("laugh", "Laugh"),
+        ("confused", "Confused"),
+        ("rocket", "Rocket"),
+    ]
+
+    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
+    comment = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, related_name="reactions"
+    )
+    author_id = models.IntegerField(db_index=True)
+    reaction = models.CharField(max_length=32, choices=REACTION_CHOICES)
+
+    class Meta:
+        unique_together = ("comment", "author_id", "reaction")
+        indexes = [
+            models.Index(fields=["comment", "reaction"]),
+        ]

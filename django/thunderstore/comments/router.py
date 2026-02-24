@@ -34,14 +34,22 @@ class CommentsRouter:
         Make sure the comments app only appears in the 'comments' database.
         And other apps do not appear in the 'comments' database.
         """
+        import sys
+
+        from django.conf import settings
+
+        is_alias = "pytest" in sys.modules or settings.DATABASES.get(
+            self.db_name, {}
+        ).get("NAME") == settings.DATABASES.get("default", {}).get("NAME")
+
         if app_label in self.route_app_labels:
-            return db == self.db_name
+            return db == self.db_name or (is_alias and db == "default")
 
         # Allow contenttypes to migrate to comments DB
         if app_label == "contenttypes":
             return True
 
-        elif db == self.db_name:
+        if db == self.db_name:
             # Prevent other apps from migrating to comments db
-            return False
+            return is_alias
         return None

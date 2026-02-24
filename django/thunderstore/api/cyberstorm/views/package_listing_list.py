@@ -53,7 +53,7 @@ class PackageListRequestSerializer(serializers.Serializer):
     q = serializers.CharField(required=False, help_text="Free text search")
     section = serializers.UUIDField(required=False)
     status = serializers.ChoiceField(
-        choices=[x.value for x in PackageListingReviewStatus],
+        choices=PackageListingReviewStatus.options(),
         required=False,
     )
 
