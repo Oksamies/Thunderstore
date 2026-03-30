@@ -95,6 +95,10 @@ class Package(VisibilityMixin, AdminLinkMixin):
         default=OptionalBoolChoice.NONE,
     )
 
+    readme = models.TextField(blank=True, default="")
+    changelog = models.TextField(blank=True, default="")
+    sync_markdown_from_zip = models.BooleanField(default=True)
+
     class Meta:
         permissions = (("deprecate_package", "Can manage package deprecation status"),)
         constraints = [
@@ -240,12 +244,6 @@ class Package(VisibilityMixin, AdminLinkMixin):
     def dependants_list(self):
         return get_package_dependants_list(self.pk)
 
-    def readme(self):
-        return self.latest.readme
-
-    def changelog(self):
-        return self.latest.changelog
-
     def get_absolute_url(self) -> str:
         return reverse(
             "old_urls:packages.detail",
@@ -291,6 +289,22 @@ class Package(VisibilityMixin, AdminLinkMixin):
     def handle_created_version(self, version):
         self.date_updated = timezone.now()
         self.is_deprecated = False
+        if self.sync_markdown_from_zip:
+            self.readme = version.readme
+            # Wait we keep changelog on the package too? Plan says deprecated, but we still populate it until full removal. Let's keep it for now.
+            self.changelog = version.changelog or ""
+            
+            from thunderstore.repository.models.package_readme_revision import (
+                PackageReadmeRevision,
+                PackageReadmeRevisionSource,
+            )
+            PackageReadmeRevision.objects.create(
+                package=self,
+                content=version.readme,
+                author=version.uploaded_by,
+                source=PackageReadmeRevisionSource.ZIP_UPLOAD,
+            )
+            
         self.save()
 
     def handle_updated_version(self, version):

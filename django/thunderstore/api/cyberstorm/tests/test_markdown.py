@@ -4,7 +4,7 @@ import pytest
 from django.http import Http404
 from rest_framework.test import APIClient
 
-from thunderstore.api.cyberstorm.views.markdown import get_package_version
+from thunderstore.api.cyberstorm.views.markdown import get_package_and_version
 from thunderstore.repository.factories import PackageVersionFactory
 from thunderstore.repository.models import Package
 
@@ -19,7 +19,7 @@ def test_get_package_version__returns_requested_version_or_latest_by_default(
     PackageVersionFactory(package=package, version_number="1.2.3")
     PackageVersionFactory(package=package, version_number="1.0.1")
 
-    actual = get_package_version(
+    package, actual = get_package_and_version(
         package.namespace.name,
         package.name,
         requested_version,
@@ -28,7 +28,7 @@ def test_get_package_version__returns_requested_version_or_latest_by_default(
     if requested_version:
         assert actual.version_number == requested_version
     else:
-        assert actual.version_number == "1.2.3"  # latest
+        assert actual is None
 
 
 @pytest.mark.django_db
@@ -40,7 +40,7 @@ def test_get_package_version__raises_for_inactive_package(
     package.save()
 
     with pytest.raises(Http404):
-        get_package_version(package.namespace.name, package.name, None)
+        get_package_and_version(package.namespace.name, package.name, None)
 
 
 @pytest.mark.django_db
@@ -52,7 +52,7 @@ def test_get_package_version__raises_for_inactive_package_version(
     PackageVersionFactory(package=package, is_active=False)
 
     with pytest.raises(Http404):
-        get_package_version(
+        get_package_and_version(
             package.namespace.name,
             package.name,
             requested_version,
@@ -61,7 +61,9 @@ def test_get_package_version__raises_for_inactive_package_version(
 
 @pytest.mark.django_db
 def test_readme_api_view__prerenders_markup(api_client: APIClient) -> None:
-    v = PackageVersionFactory(readme="# Very **strong** header")
+    v = PackageVersionFactory()
+    v.package.readme = "# Very **strong** header"
+    v.package.save()
 
     response = api_client.get(
         f"/api/cyberstorm/package/{v.package.namespace}/{v.package.name}/latest/readme/",
@@ -76,7 +78,7 @@ def test_readme_api_view__prerenders_markup(api_client: APIClient) -> None:
     ("markdown", "markup"),
     (
         ("", ""),
-        ("Oh hai!", "<p>Oh hai!</p>\n"),
+        ("Oh hai!", "<h1>Version 1.0.0</h1>\n<p>Oh hai!</p>\n"),
     ),
 )
 def test_changelog_api_view__prerenders_markup(
@@ -84,7 +86,7 @@ def test_changelog_api_view__prerenders_markup(
     markdown: Optional[str],
     markup: str,
 ) -> None:
-    v = PackageVersionFactory(changelog=markdown)
+    v = PackageVersionFactory(version_number="1.0.0", changelog=markdown)
 
     response = api_client.get(
         f"/api/cyberstorm/package/{v.package.namespace}/{v.package.name}/latest/changelog/",
@@ -98,7 +100,9 @@ def test_changelog_api_view__prerenders_markup(
 def test_changelog_api_view__when_package_has_no_changelog__returns_404(
     api_client: APIClient,
 ) -> None:
-    v = PackageVersionFactory(changelog=None)
+    v = PackageVersionFactory(changelog="")
+    v.package.changelog = None
+    v.package.save()
 
     response = api_client.get(
         f"/api/cyberstorm/package/{v.package.namespace}/{v.package.name}/latest/changelog/",
@@ -107,3 +111,22 @@ def test_changelog_api_view__when_package_has_no_changelog__returns_404(
 
     assert response.status_code == 404
     assert actual["detail"] == "Not found."
+
+
+@pytest.mark.django_db
+def test_changelog_api_view__stitches_changelogs_for_latest(
+    api_client: APIClient,
+) -> None:
+    v1 = PackageVersionFactory(version_number="1.0.0", changelog="Initial release")
+    v2 = PackageVersionFactory(package=v1.package, version_number="1.1.0", changelog="Added features")
+
+    response = api_client.get(
+        f"/api/cyberstorm/package/{v1.package.namespace}/{v1.package.name}/latest/changelog/",
+    )
+    actual = response.json()
+
+    assert "<h1>Version 1.1.0</h1>" in actual["html"]
+    assert "<p>Added features</p>" in actual["html"]
+    assert "<h1>Version 1.0.0</h1>" in actual["html"]
+    assert "<p>Initial release</p>" in actual["html"]
+

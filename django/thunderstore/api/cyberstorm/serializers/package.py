@@ -96,3 +96,16 @@ class CyberstormPackageTeamSerializer(serializers.Serializer):
 
     name = serializers.CharField()
     members = CyberstormTeamMemberSerializer(many=True, source="public_members")
+
+
+class PackageUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Package
+        fields = ["readme", "changelog", "sync_markdown_from_zip"]
+
+    def update(self, instance, validated_data):
+        # If readme or changelog is explicitly provided in the data, default sync to False unless it's given
+        if "readme" in validated_data or "changelog" in validated_data:
+            if "sync_markdown_from_zip" not in validated_data:
+                validated_data["sync_markdown_from_zip"] = False
+        return super().update(instance, validated_data)

@@ -5,6 +5,7 @@ from .package import *
 from .package_download import *
 from .package_installer import *
 from .package_rating import *
+from .package_readme_revision import PackageReadmeRevision
 from .package_version import *
 from .submission import *
 from .team import *

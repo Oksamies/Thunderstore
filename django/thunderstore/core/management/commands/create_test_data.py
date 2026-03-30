@@ -73,7 +73,12 @@ class Command(BaseCommand):
     def add_arguments(self, parser) -> None:
         parser.add_argument("--community-count", type=int, default=20)
         parser.add_argument("--team-count", type=int, default=10)
-        parser.add_argument("--package-count", type=int, default=1)
+        parser.add_argument(
+            "--package-count",
+            type=int,
+            default=6,
+            help="Number of packages to create per team (total packages = team_count * package_count)",
+        )
         parser.add_argument("--wiki-page-count", type=int, default=7)
         parser.add_argument("--version-count", type=int, default=3)
         parser.add_argument("--contract-count", type=int, default=3)

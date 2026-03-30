@@ -1,5 +1,6 @@
 from django.urls import path
 
+from thunderstore.api.cyberstorm.views.package import PackageUpdateAPIView
 from thunderstore.api.cyberstorm.views import (
     ApprovePackageListingAPIView,
     CommunityAPIView,
@@ -153,6 +154,11 @@ cyberstorm_urls = [
         "team/create/",
         TeamCreateAPIView.as_view(),
         name="cyberstorm.team.create",
+    ),
+    path(
+        "package/<str:namespace_id>/<str:package_name>/update/",
+        PackageUpdateAPIView.as_view(),
+        name="cyberstorm.package.update",
     ),
     path(
         "package/<str:namespace_id>/<str:package_name>/deprecate/",
