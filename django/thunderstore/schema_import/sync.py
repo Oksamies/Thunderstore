@@ -133,7 +133,7 @@ def sync_thunderstore_schema():
     response = requests.get(
         settings.ECOSYSTEM_SCHEMA_URL, headers={"accept-encoding": "gzip"}
     )
-    schema = Schema.parse_obj(response.json())
+    schema = Schema.model_validate(response.json())
 
     with ExceptionLogger(continue_on_error=True):
         import_schema_communities(schema)

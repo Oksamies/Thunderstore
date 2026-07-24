@@ -32,7 +32,7 @@ PAYLOAD = json.dumps(
         "redirect_uri": "redirect_uri",
     }
 )
-RETURN_VALUE = UserInfoSchema.parse_obj(
+RETURN_VALUE = UserInfoSchema.model_validate(
     {
         "email": "foo@bar.com",
         "extra_data": {"foo": "bar"},
@@ -271,7 +271,7 @@ def test_get_unique_username_adds_random_suffixes_only_when_needed() -> None:
 
 @pytest.mark.django_db
 def test_get_or_create_auth_user_creates_user_without_password() -> None:
-    ui = UserInfoSchema.parse_obj(USER_INFO)
+    ui = UserInfoSchema.model_validate(USER_INFO)
 
     user = get_or_create_auth_user(ui)
 
@@ -284,7 +284,7 @@ def test_get_or_create_auth_user_creates_user_only_when_needed() -> None:
     assert UserSocialAuth.objects.count() == 0
 
     # Create original user.
-    ui = UserInfoSchema.parse_obj(USER_INFO)
+    ui = UserInfoSchema.model_validate(USER_INFO)
     user1 = get_or_create_auth_user(ui)
     assert User.objects.count() == 1
     assert UserSocialAuth.objects.count() == 1
@@ -311,7 +311,7 @@ def test_get_or_create_auth_user_creates_user_only_when_needed() -> None:
 def test_get_or_create_auth_user_updates_extra_data() -> None:
     assert UserSocialAuth.objects.count() == 0
 
-    ui = UserInfoSchema.parse_obj(USER_INFO)
+    ui = UserInfoSchema.model_validate(USER_INFO)
     get_or_create_auth_user(ui)
     assert UserSocialAuth.objects.count() == 1
     usa1 = UserSocialAuth.objects.get()

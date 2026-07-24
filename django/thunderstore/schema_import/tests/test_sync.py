@@ -116,7 +116,7 @@ def _single_community_schema(*, listed=None, **meta):
 @pytest.mark.django_db
 def test_import_community_populates_assets_and_listed():
     # Raw dict so the lowercase compiled-schema keys are exercised (no aliases).
-    schema = Schema.parse_obj(
+    schema = Schema.model_validate(
         {
             "schemaVersion": "0.3.0",
             "games": {},

@@ -106,7 +106,7 @@ def verify_overwolf_jwt(jwt: str) -> None:
 
 def get_overwolf_user_profile(jwt: str) -> OverwolfProfileSchema:
     response = query_overwolf_jwt_api("users/profile", jwt)
-    return OverwolfProfileSchema.parse_obj(response.json())
+    return OverwolfProfileSchema.model_validate(response.json())
 
 
 def get_user_info(profile: OverwolfProfileSchema) -> UserInfoSchema:
@@ -114,7 +114,7 @@ def get_user_info(profile: OverwolfProfileSchema) -> UserInfoSchema:
     Overwolf doesn't provide a way to query user's email address, so
     make one up, like we do for service accounts.
     """
-    return UserInfoSchema.parse_obj(
+    return UserInfoSchema.model_validate(
         {
             "email": f"{ulid2.generate_ulid_as_uuid().hex}.mm@thunderstore.io",
             "extra_data": profile,

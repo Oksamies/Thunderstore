@@ -12,7 +12,7 @@ from thunderstore.ts_analytics.tasks import send_kafka_message
 
 def _send_kafka_message_on_commit(topic: str, payload: BaseModel):
     transaction.on_commit(
-        lambda: send_kafka_message.delay(topic=topic, payload_string=payload.json())
+        lambda: send_kafka_message.delay(topic=topic, payload_string=payload.model_dump_json())
     )
 
 

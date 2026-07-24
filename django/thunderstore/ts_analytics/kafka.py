@@ -47,7 +47,7 @@ class KafkaClient:
     ):
         self._send_string(
             topic=topic,
-            payload_string=payload.json(),
+            payload_string=payload.model_dump_json(),
             key=key,
         )
 

@@ -42,5 +42,5 @@ def test_process_audit_event(
         user_id=user.pk,
         message=message,
     )
-    process_audit_event(event.json())
+    process_audit_event(event.model_dump_json())
     assert mocked_post.called_once()

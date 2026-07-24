@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import requests
 from django.conf import settings
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 
 
 class AuthResponseSchema(BaseModel):
@@ -82,7 +82,7 @@ class BaseOauthHelper(ABC):
         headers = {"Accept": "application/json"}
 
         response = requests.post(self.OAUTH_URL, data, headers=headers)
-        response_data = AuthResponseSchema.parse_obj(response.json())
+        response_data = AuthResponseSchema.model_validate(response.json())
         self.token = response_data.access_token
 
     @abstractmethod
@@ -139,9 +139,9 @@ class DiscordOauthHelper(BaseOauthHelper):
             username: str
 
         response_json = self._fetch_from_api(token, url)
-        data = PartialResponseSchema.parse_obj(response_json)
+        data = PartialResponseSchema.model_validate(response_json)
 
-        return UserInfoSchema.parse_obj(
+        return UserInfoSchema.model_validate(
             {
                 "email": data.email,
                 "extra_data": response_json,
@@ -184,14 +184,12 @@ class GitHubOauthHelper(BaseOauthHelper):
             primary: bool
             verified: bool
 
-        class EmailList(BaseModel):
-            __root__: List[PartialEmail]
-
+        class EmailList(RootModel[List[PartialEmail]]):
             def __iter__(self):
-                return iter(self.__root__)
+                return iter(self.root)
 
         response_json = self._fetch_from_api(token, url)
-        emails = EmailList.parse_obj(response_json)
+        emails = EmailList.model_validate(response_json)
         primary = next((email for email in emails if email.primary), None)
 
         if primary is None or not primary.verified:
@@ -217,9 +215,9 @@ class GitHubOauthHelper(BaseOauthHelper):
             name: str
 
         response_json = self._fetch_from_api(token, url)
-        data = PartialResponseSchema.parse_obj(response_json)
+        data = PartialResponseSchema.model_validate(response_json)
 
-        return UserInfoSchema.parse_obj(
+        return UserInfoSchema.model_validate(
             {
                 "email": data.email or self.get_user_email(),
                 "extra_data": response_json,

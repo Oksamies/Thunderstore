@@ -23,7 +23,7 @@ def get_download_meta(
     key = f"{namespace}-{name}-{version_number}"
     if cached_value := cache.get(key):
         try:
-            return DownloadMetaCache.parse_obj(cached_value)
+            return DownloadMetaCache.model_validate(cached_value)
         except ValidationError:
             pass
 

@@ -25,17 +25,17 @@ class AuditEventField(BaseModel):
 
 class AuditEvent(BaseModel):
     timestamp: datetime
-    user_id: Optional[int]
-    community_id: Optional[int]
+    user_id: Optional[int] = None
+    community_id: Optional[int] = None
     target: AuditTarget
     action: AuditAction
-    message: Optional[str]
-    related_url: Optional[str]
-    fields: Optional[List[AuditEventField]]
+    message: Optional[str] = None
+    related_url: Optional[str] = None
+    fields: Optional[List[AuditEventField]] = None
 
 
 def fire_audit_event(event: AuditEvent):
     from .tasks import process_audit_event
 
-    event_json = event.json()
+    event_json = event.model_dump_json()
     transaction.on_commit(lambda: process_audit_event.delay(event_json))

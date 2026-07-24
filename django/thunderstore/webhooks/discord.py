@@ -32,14 +32,14 @@ DEFAULT_PROVIDER = DiscordEmbedProvider(
 class DiscordEmbed(BaseModel):
     title: str
     type: Literal["rich"] = "rich"
-    description: Optional[str]
-    url: Optional[str]
+    description: Optional[str] = None
+    url: Optional[str] = None
     timestamp: str
-    color: Optional[int]
-    thumbnail: Optional[DiscordEmbedThumbnail]
+    color: Optional[int] = None
+    thumbnail: Optional[DiscordEmbedThumbnail] = None
     provider: DiscordEmbedProvider = DEFAULT_PROVIDER
-    author: Optional[DiscordEmbedAuthor]
-    fields: Optional[List[DiscordEmbedField]]
+    author: Optional[DiscordEmbedAuthor] = None
+    fields: Optional[List[DiscordEmbedField]] = None
 
 
 class DiscordPayload(BaseModel):

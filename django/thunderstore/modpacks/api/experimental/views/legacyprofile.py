@@ -71,7 +71,7 @@ class LegacyProfileCreateApiView(APIView):
                     id=str(key),
                     timestamp=timezone.now(),
                     file_size_bytes=file_size,
-                ).json(),
+                ).model_dump_json(),
             )
         )
 

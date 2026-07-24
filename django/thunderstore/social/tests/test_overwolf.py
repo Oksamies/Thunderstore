@@ -65,7 +65,7 @@ def test_login_request__with_invalid_jwt__is_verified_and_rejected(
 @patch.object(
     overwolf,
     "get_overwolf_user_profile",
-    return_value=overwolf.OverwolfProfileSchema.parse_obj(
+    return_value=overwolf.OverwolfProfileSchema.model_validate(
         {"username": "kingsley", "nickname": "Cosmo", "avatar": ""}
     ),
 )

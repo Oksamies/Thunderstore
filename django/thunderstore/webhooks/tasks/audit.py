@@ -10,8 +10,8 @@ from thunderstore.webhooks.models import AuditWebhook
     name="thunderstore.webhooks.tasks.process_audit_event", queue=CeleryQueues.Default
 )
 def process_audit_event(event_json: str):
-    event = AuditEvent.parse_raw(event_json)
-    rendered = AuditWebhook.render_event(event).json(
+    event = AuditEvent.model_validate_json(event_json)
+    rendered = AuditWebhook.render_event(event).model_dump_json(
         exclude_unset=True,
         exclude_none=True,
     )

@@ -49,6 +49,6 @@ def log_version_download(version_id: int, timestamp: str):
                     id=generated_id,
                     version_id=version_id,
                     timestamp=timestamp_dt,
-                ).json(),
+                ).model_dump_json(),
             )
         )

@@ -14,22 +14,24 @@ class SchemaThunderstoreCategory(BaseModel):
 
 
 class SchemaThunderstoreCommunityMeta(BaseModel):
-    icon: Optional[str]
-    cover: Optional[str]
-    background: Optional[str]
-    hero: Optional[str]
+    icon: Optional[str] = None
+    cover: Optional[str] = None
+    background: Optional[str] = None
+    hero: Optional[str] = None
 
 
 class SchemaCommunity(BaseModel):
     display_name: str = Field(alias="displayName")
     categories: Dict[str, SchemaThunderstoreCategory]
     sections: Dict[str, SchemaThunderstoreSection]
-    short_description: Optional[str] = Field(alias="shortDescription")
-    discord_url: Optional[str] = Field(alias="discordUrl")
-    wiki_url: Optional[str] = Field(alias="wikiUrl")
-    autolist_package_ids: Optional[List[str]] = Field(alias="autolistPackageIds")
-    listed: Optional[bool]
-    meta: Optional[SchemaThunderstoreCommunityMeta]
+    short_description: Optional[str] = Field(default=None, alias="shortDescription")
+    discord_url: Optional[str] = Field(default=None, alias="discordUrl")
+    wiki_url: Optional[str] = Field(default=None, alias="wikiUrl")
+    autolist_package_ids: Optional[List[str]] = Field(
+        default=None, alias="autolistPackageIds"
+    )
+    listed: Optional[bool] = None
+    meta: Optional[SchemaThunderstoreCommunityMeta] = None
 
 
 class SchemaGameMeta(BaseModel):
@@ -38,7 +40,7 @@ class SchemaGameMeta(BaseModel):
 
 class SchemaGame(BaseModel):
     meta: SchemaGameMeta
-    thunderstore: Optional[SchemaCommunity]
+    thunderstore: Optional[SchemaCommunity] = None
 
 
 class SchemaPackageInstaller(BaseModel):
