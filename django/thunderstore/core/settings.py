@@ -812,6 +812,16 @@ ALLOWED_CDNS = env.list("ALLOWED_CDNS")
 # (get_package_storage, ...), so migrations serialize a stable reference rather
 # than the environment-specific backend — this replaces the old StubStorage
 # makemigrations workaround.
+def _content_addressed_options(backend: str) -> dict:
+    # blob/schema paths are derived from the content hash, so overwriting is
+    # idempotent. Enable file_overwrite on S3 backends to avoid accumulating
+    # random-suffixed duplicates when the same content is written again.
+    # FileSystemStorage doesn't accept the option, so only set it for S3.
+    if "s3boto3" in backend.lower() or backend.endswith("MirroredS3Storage"):
+        return {"file_overwrite": True}
+    return {}
+
+
 STORAGES = {
     "default": {"BACKEND": DEFAULT_FILE_STORAGE},
     "staticfiles": {
@@ -819,8 +829,14 @@ STORAGES = {
     },
     "package": {"BACKEND": PACKAGE_FILE_STORAGE},
     "modpack": {"BACKEND": MODPACK_FILE_STORAGE},
-    "schema": {"BACKEND": SCHEMA_FILE_STORAGE},
-    "blob": {"BACKEND": BLOB_FILE_STORAGE},
+    "schema": {
+        "BACKEND": SCHEMA_FILE_STORAGE,
+        "OPTIONS": _content_addressed_options(SCHEMA_FILE_STORAGE),
+    },
+    "blob": {
+        "BACKEND": BLOB_FILE_STORAGE,
+        "OPTIONS": _content_addressed_options(BLOB_FILE_STORAGE),
+    },
     "easy_thumbnails": {"BACKEND": THUMBNAIL_DEFAULT_STORAGE},
 }
 THUMBNAIL_DEFAULT_STORAGE_ALIAS = "easy_thumbnails"

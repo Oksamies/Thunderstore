@@ -151,9 +151,15 @@ class Package(VisibilityMixin, AdminLinkMixin):
     @cached_property
     def has_wiki(self) -> bool:
         try:
-            return self.wiki.wiki.pages.exists()
+            wiki = self.wiki.wiki
         except ObjectDoesNotExist:
             return False
+        # A "dummy" unsaved PackageWiki (from get_for_package) can populate the
+        # reverse cache with an unsaved Wiki; Django 5.0 raises on using its
+        # relations, so treat an unsaved wiki as having no pages.
+        if wiki.pk is None:
+            return False
+        return wiki.pages.exists()
 
     @cached_property
     def full_package_name(self):

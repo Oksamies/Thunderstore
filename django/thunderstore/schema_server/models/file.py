@@ -17,6 +17,9 @@ def get_schema_file_path(_, filename: str) -> str:
 
 class SchemaFile(S3FileMixin):
     data = models.FileField(
+        # Default FileField max_length (100) truncates the content-addressed
+        # path under django-storages 1.14 (which now enforces max_length).
+        max_length=255,
         upload_to=get_schema_file_path,
         storage=get_schema_storage,
         editable=False,

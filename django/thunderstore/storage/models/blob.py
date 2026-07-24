@@ -21,6 +21,10 @@ class DataBlob(SafeDeleteMixin, AdminLinkMixin):
     """
 
     data = models.FileField(
+        # The content-addressed path is ~108 chars; the default FileField
+        # max_length of 100 truncates it under django-storages 1.14 (which now
+        # enforces max_length where 1.12 did not).
+        max_length=255,
         upload_to=get_object_file_path,
         storage=get_blob_storage,
         editable=False,
