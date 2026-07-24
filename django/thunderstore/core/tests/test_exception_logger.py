@@ -12,7 +12,7 @@ def test_exception_logger_continues(settings, mocker):
     with ExceptionLogger(continue_on_error=True):
         raise exception
 
-    assert mocked.called_once_with(exception)
+    mocked.assert_called_once_with(exception)
 
 
 @pytest.mark.django_db
@@ -25,4 +25,4 @@ def test_exception_logger_raises(settings, mocker):
         with ExceptionLogger(continue_on_error=False):
             raise exception
 
-    assert mocked.called_once_with(exception)
+    mocked.assert_called_once_with(exception)

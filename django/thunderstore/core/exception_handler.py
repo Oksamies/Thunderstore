@@ -1,8 +1,9 @@
 from typing import Any, Optional
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.http import Http404
 from drf_yasg.openapi import Response
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response as DRFResponse
 from rest_framework.serializers import as_serializer_error
@@ -20,7 +21,12 @@ def serialize_validation_error(error: DjangoValidationError):
 
 
 def exception_handler(exc: Exception, context: Any) -> Optional[Response]:
-    if isinstance(exc, PermissionValidationError):
+    if isinstance(exc, Http404):
+        # DRF 3.15+ forwards the Http404 message to NotFound, so responses from
+        # django.shortcuts.get_object_or_404 would leak "No <Model> matches the
+        # given query." Keep the previous generic "Not found." API contract.
+        exc = NotFound()
+    elif isinstance(exc, PermissionValidationError):
         if exc.is_public:
             exc = PermissionDenied(detail=as_serializer_error(exc))
         else:

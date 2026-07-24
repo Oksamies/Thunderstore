@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from rest_framework import serializers
 from rest_framework.generics import ListAPIView, get_object_or_404
+from drf_yasg.inspectors import PaginatorInspector
 from rest_framework.pagination import PageNumberPagination
 
 from thunderstore.api.cyberstorm.serializers import CyberstormPackagePreviewSerializer
@@ -79,6 +80,22 @@ class PackageListPaginator(PageNumberPagination):
         matches reality.
         """
         return []
+
+
+class NoPaginatorInspector(PaginatorInspector):
+    """
+    Suppress drf-yasg's auto-generated pagination query parameters. drf-yasg
+    1.21 inspects the paginator directly (ignoring get_schema_fields), so its
+    `page` parameter would clash with the `page` field already declared in
+    PackageListRequestSerializer and abort schema generation. The query
+    serializer documents pagination for these views instead.
+    """
+
+    def get_paginator_parameters(self, paginator):
+        return []
+
+    def get_paginated_response(self, paginator, response_schema):
+        return response_schema
 
 
 class BasePackageListAPIView(PublicCacheMixin, ListAPIView):
@@ -285,6 +302,7 @@ class BasePackageListAPIView(PublicCacheMixin, ListAPIView):
     name="get",
     decorator=conditional_swagger_auto_schema(
         query_serializer=PackageListRequestSerializer,
+        paginator_inspectors=[NoPaginatorInspector],
         responses={200: PackageListResponseSerializer()},
         operation_id="api_cyberstorm_package_listing_by_community_list",
         tags=["cyberstorm"],
@@ -302,6 +320,7 @@ class PackageListingByCommunityListAPIView(BasePackageListAPIView):
     name="get",
     decorator=conditional_swagger_auto_schema(
         query_serializer=PackageListRequestSerializer,
+        paginator_inspectors=[NoPaginatorInspector],
         manual_fields=[],
         responses={200: PackageListResponseSerializer()},
         operation_id="api_cyberstorm_package_listing_by_namespace_list",
@@ -327,6 +346,7 @@ class PackageListingByNamespaceListAPIView(BasePackageListAPIView):
     name="get",
     decorator=conditional_swagger_auto_schema(
         query_serializer=PackageListRequestSerializer,
+        paginator_inspectors=[NoPaginatorInspector],
         manual_fields=[],
         responses={200: PackageListResponseSerializer()},
         operation_id="api_cyberstorm_package_listing_by_dependency_list",
