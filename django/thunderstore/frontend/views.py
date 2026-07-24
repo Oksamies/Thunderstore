@@ -68,7 +68,7 @@ class ThumbnailServeView(View):
         try:
             width = int(request.GET.get("width", 0))
             height = int(request.GET.get("height", 0))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             width, height = 0, 0
 
         max_age = 300  # 5 minutes

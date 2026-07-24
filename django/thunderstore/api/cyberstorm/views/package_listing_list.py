@@ -7,9 +7,9 @@ from django.core.paginator import Page
 from django.db.models import Count, OuterRef, Q, QuerySet, Subquery, Sum
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from drf_yasg.inspectors import PaginatorInspector
 from rest_framework import serializers
 from rest_framework.generics import ListAPIView, get_object_or_404
-from drf_yasg.inspectors import PaginatorInspector
 from rest_framework.pagination import PageNumberPagination
 
 from thunderstore.api.cyberstorm.serializers import CyberstormPackagePreviewSerializer
@@ -127,7 +127,7 @@ class BasePackageListAPIView(PublicCacheMixin, ListAPIView):
         # paginator itself, but that would require passing extra args,
         # which would change the methods signatures, which is icky and
         # not liked by MyPy either.
-        (previous_url, next_url) = self._get_sibling_pages()
+        previous_url, next_url = self._get_sibling_pages()
         response.data["previous"] = previous_url
         response.data["next"] = next_url
 

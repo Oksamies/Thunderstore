@@ -320,7 +320,9 @@ def test_get_sorted_active_versions__filters_inactive_and_sorts_descending() -> 
 
 
 @pytest.mark.django_db
-def test_get_prefetched_listing_queryset__prefetches_versions_and_dependencies() -> None:
+def test_get_prefetched_listing_queryset__prefetches_versions_and_dependencies() -> (
+    None
+):
     from django.db import connection
     from django.test.utils import CaptureQueriesContext
 

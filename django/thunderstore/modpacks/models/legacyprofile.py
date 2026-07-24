@@ -5,13 +5,13 @@ from uuid import UUID
 import ulid2
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from thunderstore.core.storage import get_modpack_storage
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.db import models
 from django.db.models import Sum
 
 from thunderstore.cache.utils import get_cache
 from thunderstore.core.mixins import TimestampMixin
+from thunderstore.core.storage import get_modpack_storage
 
 LEGACYPROFILE_STORAGE_CAP = (
     1024 * 1024 * 1024 * settings.LEGACYPROFILE_MAX_TOTAL_SIZE_GB

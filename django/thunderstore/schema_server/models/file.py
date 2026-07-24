@@ -4,11 +4,10 @@ from hashlib import sha256
 
 from django.core.files.base import ContentFile
 from django.db import models
-
-from thunderstore.core.storage import get_schema_storage
 from django.utils import timezone
 
 from thunderstore.core.mixins import S3FileMixin
+from thunderstore.core.storage import get_schema_storage
 
 
 def get_schema_file_path(_, filename: str) -> str:

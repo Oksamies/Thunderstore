@@ -6,6 +6,7 @@ package ``__init__`` runs before ``thunderstore.abyss.middleware`` (the module
 that triggers the abyss import), so re-adding a compatible shim here lets the
 abyss middleware load unchanged.
 """
+
 import django.core.files.storage
 from django.utils.module_loading import import_string
 

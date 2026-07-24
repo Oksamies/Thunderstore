@@ -93,9 +93,9 @@ class PackageDetailApiView(APIView):
                 PackageDependencySerializer(
                     {
                         "community_name": community.name if community else None,
-                        "community_identifier": community.identifier
-                        if community
-                        else None,
+                        "community_identifier": (
+                            community.identifier if community else None
+                        ),
                         "description": d.description,
                         "image_src": d.icon.url if bool(d.icon) else None,
                         "namespace": d.package.namespace.name,

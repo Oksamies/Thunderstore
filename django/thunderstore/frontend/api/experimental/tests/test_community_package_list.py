@@ -43,7 +43,9 @@ def test_only_active_packages_are_returned(api_client: APIClient) -> None:
 
 
 @pytest.mark.django_db
-def test_only_community_listings_for_correct_community_are_included_in_queryset() -> None:
+def test_only_community_listings_for_correct_community_are_included_in_queryset() -> (
+    None
+):
     """
     Due to the implementation, test case
     test_only_packages_listed_in_community_are_returned might

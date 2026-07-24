@@ -8,7 +8,7 @@ from thunderstore.community.models import PackageCategory
 
 
 def clean_community_categories(
-    community_categories: Optional[Dict[str, List[str]]]
+    community_categories: Optional[Dict[str, List[str]]],
 ) -> Optional[Dict[str, List[PackageCategory]]]:
     if not community_categories:
         return {}

@@ -16,7 +16,7 @@ from thunderstore.account.tokens import (
 
 def test_hash_parameters_are_fixed():
     hashed = hash_service_account_api_token("somevalue")
-    (hasher, iterations, salt, hashed) = hashed.split("$")
+    hasher, iterations, salt, hashed = hashed.split("$")
     assert hasher == "pbkdf2_sha256"
     assert iterations == "524288"
     assert salt == "w520TEzFVlsO"
@@ -71,7 +71,7 @@ def test_api_token_authentication_is_successful():
 
     request_token = f"Bearer {real_token}"
     request = RequestFactory().get("", HTTP_AUTHORIZATION=request_token)
-    (user, token) = ServiceAccountTokenAuthentication().authenticate(request)
+    user, token = ServiceAccountTokenAuthentication().authenticate(request)
 
     assert user == sa.user
     assert token == real_token

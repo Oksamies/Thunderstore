@@ -12,11 +12,11 @@ from django.utils import timezone
 
 from thunderstore.community.models import Community, PackageListing
 from thunderstore.core.mixins import S3FileMixin, SafeDeleteMixin
-from thunderstore.repository.version_number import PackageVersionNumber
 from thunderstore.repository.cache import (
     get_package_listing_base_queryset,
     order_package_listing_queryset,
 )
+from thunderstore.repository.version_number import PackageVersionNumber
 from thunderstore.storage.models import DataBlob, DataBlobGroup
 from thunderstore.utils.batch import batch
 

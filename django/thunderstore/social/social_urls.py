@@ -6,6 +6,7 @@ re-expose a GET-capable begin view here to keep those login links working, while
 reusing social_django's complete/disconnect views unchanged. Hardening the
 legacy login links to POST forms is a possible follow-up.
 """
+
 from django.urls import path
 from django.views.decorators.cache import never_cache
 from social_core.actions import do_auth

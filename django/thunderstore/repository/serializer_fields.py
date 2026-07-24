@@ -82,7 +82,7 @@ class Base64Field(serializers.CharField):
         encoded_data = super().to_internal_value(data)
         try:
             decoded_data = base64.b64decode(encoded_data)
-        except (ValueError, binascii.Error):
+        except ValueError, binascii.Error:
             raise serializers.ValidationError(_("Invalid base64 string."))
 
         if self.max_size is not None and len(decoded_data) > self.max_size:

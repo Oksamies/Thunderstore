@@ -648,14 +648,17 @@ def test_package_listing_is_unavailable(
     is_waiting_for_approval: bool,
     expected: bool,
 ) -> None:
-    with patch(
-        "thunderstore.community.models.PackageListing.is_rejected",
-        new_callable=PropertyMock,
-        return_value=is_rejected,
-    ), patch(
-        "thunderstore.community.models.PackageListing.is_waiting_for_approval",
-        new_callable=PropertyMock,
-        return_value=is_waiting_for_approval,
+    with (
+        patch(
+            "thunderstore.community.models.PackageListing.is_rejected",
+            new_callable=PropertyMock,
+            return_value=is_rejected,
+        ),
+        patch(
+            "thunderstore.community.models.PackageListing.is_waiting_for_approval",
+            new_callable=PropertyMock,
+            return_value=is_waiting_for_approval,
+        ),
     ):
 
         listing = PackageListingFactory()

@@ -137,12 +137,12 @@ class PackageDetailView(PackageListingDetailView):
 
         context["dependants_string"] = dependants_string
         context["show_management_panel"] = self.permissions_checker.can_manage
-        context[
-            "show_listing_admin_link"
-        ] = self.permissions_checker.can_view_listing_admin_page
-        context[
-            "show_package_admin_link"
-        ] = self.permissions_checker.can_view_package_admin_page
+        context["show_listing_admin_link"] = (
+            self.permissions_checker.can_view_listing_admin_page
+        )
+        context["show_package_admin_link"] = (
+            self.permissions_checker.can_view_package_admin_page
+        )
         context["show_review_status"] = self.permissions_checker.can_manage
         context["show_internal_notes"] = self.permissions_checker.can_moderate
 

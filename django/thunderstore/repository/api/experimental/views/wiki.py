@@ -169,9 +169,9 @@ class PackageWikiListAPIView(GenericAPIView):
         serializer = PackageWikiListResponse(
             instance={
                 "results": results,
-                "cursor": results[-1].wiki.datetime_updated
-                if results
-                else timezone.now(),
+                "cursor": (
+                    results[-1].wiki.datetime_updated if results else timezone.now()
+                ),
                 "has_more": len(wikis) == self.page_size + 1,
             }
         )

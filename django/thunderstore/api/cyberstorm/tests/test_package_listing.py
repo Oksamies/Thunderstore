@@ -189,7 +189,9 @@ def test_get_custom_package_listing__when_version_provided__uses_that_version() 
 
 
 @pytest.mark.django_db
-def test_get_custom_package_listing__when_version_provided_but_missing__raises_404() -> None:
+def test_get_custom_package_listing__when_version_provided_but_missing__raises_404() -> (
+    None
+):
     listing = PackageListingFactory()
 
     with pytest.raises(Http404):

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Iterator, Optional
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from thunderstore.core.storage import get_package_storage
 from django.db import models, transaction
 from django.db.models import Manager, Q, QuerySet, Sum, signals
 from django.urls import reverse
@@ -13,6 +12,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 
 from thunderstore.core.mixins import AdminLinkMixin
+from thunderstore.core.storage import get_package_storage
 from thunderstore.core.types import UserType
 from thunderstore.permissions.mixins import VisibilityMixin, VisibilityQuerySet
 from thunderstore.repository.consts import (

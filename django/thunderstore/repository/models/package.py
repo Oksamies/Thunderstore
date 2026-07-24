@@ -21,8 +21,8 @@ from thunderstore.core.utils import check_validity
 from thunderstore.permissions.mixins import VisibilityMixin
 from thunderstore.permissions.models.visibility import VisibilityFlagsQuerySet
 from thunderstore.permissions.utils import validate_user
-from thunderstore.repository.version_number import PackageVersionNumber
 from thunderstore.repository.consts import PACKAGE_NAME_REGEX
+from thunderstore.repository.version_number import PackageVersionNumber
 
 if TYPE_CHECKING:
     from thunderstore.repository.models import PackageWiki

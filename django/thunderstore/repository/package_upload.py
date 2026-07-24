@@ -186,7 +186,7 @@ class PackageUploadForm(forms.ModelForm):
                 except KeyError:
                     pass
 
-        except (BadZipFile, NotImplementedError):
+        except BadZipFile, NotImplementedError:
             raise ValidationError("Invalid zip file format")
 
     @transaction.atomic

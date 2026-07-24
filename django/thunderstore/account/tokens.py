@@ -6,6 +6,7 @@ Main point is to become part of the Github's "Secret scanning program"
 to avoid modders placing their sensitive tokens into their public
 repos.
 """
+
 from binascii import crc32
 from random import choices
 from string import ascii_lowercase, ascii_uppercase, digits

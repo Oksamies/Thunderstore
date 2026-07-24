@@ -60,7 +60,7 @@ def regenerate_cache(
             old_timeout=old_timeout,
             version=version,
         )
-    except (LockError, AttributeError):
+    except LockError, AttributeError:
         # Lock was taken by another thread, check fallback version
         generated = cache.get(old_key, version=version)
         if generated is None:

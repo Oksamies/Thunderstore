@@ -116,13 +116,15 @@ class PackageWikiPageEditView(PackageWikiPageBaseView):
                 "namespace": self.object.package.namespace.name,
                 "name": self.object.package.name,
             },
-            "page": {
-                "id": page.pk,
-                "title": page.title,
-                "markdown_content": page.markdown_content,
-            }
-            if page
-            else None,
+            "page": (
+                {
+                    "id": page.pk,
+                    "title": page.title,
+                    "markdown_content": page.markdown_content,
+                }
+                if page
+                else None
+            ),
         }
         return context
 

@@ -806,6 +806,7 @@ if all(
 
 ALLOWED_CDNS = env.list("ALLOWED_CDNS")
 
+
 # Storage backends (Django 5.1+ STORAGES dict). The per-purpose backend paths
 # were resolved above from the environment (FileSystem / S3Boto3 / MirroredS3).
 # Models attach these via module-level callables in thunderstore.core.storage
