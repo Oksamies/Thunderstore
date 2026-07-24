@@ -35,13 +35,19 @@ AUTH_ROOT = "auth/"
 class CustomLogoutView(LogoutView):
     next_page = "/"
     success_url_allowed_hosts = set(settings.LOGOUT_ALLOWED_REDIRECT_HOSTS)
+    # Django 5.0 made LogoutView POST-only; the legacy frontend logs out via GET
+    # links, so keep GET working by delegating to the POST handler.
+    http_method_names = ["get", "post", "options"]
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
 
 
 urlpatterns = [
     path("", PackageListView.as_view(), name="index"),
     path("ads.txt", ads_txt_view, name="ads.txt"),
     path("robots.txt", robots_txt_view, name="robots.txt"),
-    path(AUTH_ROOT, include("social_django.urls", namespace="social")),
+    path(AUTH_ROOT, include("thunderstore.social.social_urls", namespace="social")),
     path(
         "auth/logout/",
         CustomLogoutView.as_view(),
