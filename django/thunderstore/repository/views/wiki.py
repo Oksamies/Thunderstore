@@ -51,6 +51,11 @@ class PackageWikiPageBaseView(PackageWikiBaseView):
     page: Optional[WikiPage] = None
 
     def get_page(self, wiki: PackageWiki) -> Optional[WikiPage]:
+        # get_for_package can return an unsaved "dummy" PackageWiki when the
+        # package has no wiki yet. Django 5.0 raises on filtering by an unsaved
+        # instance, so treat it as "no pages" (matching the pre-5.0 behaviour).
+        if wiki is None or wiki.pk is None:
+            return None
         if not self.page:
             self.page = WikiPage.objects.filter(
                 pk=self.kwargs.get("page"),
