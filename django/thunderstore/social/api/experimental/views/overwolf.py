@@ -117,7 +117,9 @@ def get_user_info(profile: OverwolfProfileSchema) -> UserInfoSchema:
     return UserInfoSchema.model_validate(
         {
             "email": f"{ulid2.generate_ulid_as_uuid().hex}.mm@thunderstore.io",
-            "extra_data": profile,
+            # pydantic v2 no longer coerces a model into a Dict[str, Any] field
+            # (v1 iterated it); dump it explicitly.
+            "extra_data": profile.model_dump(),
             "name": profile.nickname,
             "provider": "overwolf",
             "uid": profile.username,

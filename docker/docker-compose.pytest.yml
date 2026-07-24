@@ -37,7 +37,7 @@ x-django-service: &django-service
 
 services:
   db:
-    image: postgres:13.12-alpine
+    image: postgres:16-alpine
     environment:
       POSTGRES_PASSWORD: django
       POSTGRES_USER: django

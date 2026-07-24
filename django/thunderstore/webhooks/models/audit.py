@@ -74,7 +74,13 @@ class AuditWebhook(TimestampMixin):
                             value=agent_username,
                         )
                     ]
-                    + event.fields,
+                    + [
+                        # pydantic v2 is strict about model types: convert the
+                        # AuditEventFields into DiscordEmbedFields explicitly
+                        # (v1 coerced structurally-compatible models silently).
+                        DiscordEmbedField(name=field.name, value=field.value)
+                        for field in (event.fields or [])
+                    ],
                 )
             ]
         )

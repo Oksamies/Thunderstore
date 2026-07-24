@@ -43,4 +43,4 @@ def test_process_audit_event(
         message=message,
     )
     process_audit_event(event.model_dump_json())
-    assert mocked_post.called_once()
+    mocked_post.delay.assert_called_once()

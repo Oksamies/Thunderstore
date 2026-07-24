@@ -27,7 +27,9 @@ class PackageVersionNumber:
             self.version: Tuple[int, ...] = version.version
             return
         if not isinstance(version, str) or not _VERSION_RE.match(version):
-            raise ValueError(f"Invalid version number: {version!r}")
+            # Message mirrors the old distutils StrictVersion wording that
+            # callers/tests match against.
+            raise ValueError(f"invalid version number {version!r}")
         self.version = tuple(int(part) for part in version.split("."))
 
     def __str__(self) -> str:

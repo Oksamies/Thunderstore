@@ -113,20 +113,22 @@ def test_kafka_client_prefixes_topic(
     )
 
     payload = TestPayload(message="dev_test")
-    payload_string = '{"message": "dev_test"}'
+    # Derive from the actual serialization; pydantic v2 model_dump_json emits
+    # compact JSON ({"message":"dev_test"}) vs v1's spaced form.
+    payload_string = payload.model_dump_json()
     key = "dev_key"
 
     client.send(topic=topic, payload=payload, key=key)
     mock_producer.produce.assert_called_once_with(
         topic=expected,
-        value='{"message": "dev_test"}'.encode("utf-8"),
+        value=payload_string.encode("utf-8"),
         key=key.encode("utf-8"),
     )
 
     client._send_string(topic=topic, payload_string=payload_string, key=key)
     mock_producer.produce.assert_called_with(
         topic=expected,
-        value='{"message": "dev_test"}'.encode("utf-8"),
+        value=payload_string.encode("utf-8"),
         key=key.encode("utf-8"),
     )
 

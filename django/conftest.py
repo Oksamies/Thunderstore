@@ -97,7 +97,6 @@ def http_server():
     thread.join()
 
 
-@pytest.mark.django_db
 @pytest.fixture(scope="session", autouse=True)
 def prime_testing_database(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
@@ -322,8 +321,9 @@ def setup_cache(request):
     It's assumed that redis is in use and that the max worker ID doesn't go over
     14, as 15 is the default amount of redis databases.
     """
+    from asgiref.local import Local
     from django.conf import settings
-    from django.core.cache import DEFAULT_CACHE_ALIAS, _create_cache, caches
+    from django.core.cache import DEFAULT_CACHE_ALIAS, caches, close_caches
 
     xdist_suffix = getattr(request.config, "workerinput", {}).get("workerid")
     if xdist_suffix:
@@ -340,7 +340,12 @@ def setup_cache(request):
     parts[-1] = str(db_id)
     new_caches[DEFAULT_CACHE_ALIAS]["LOCATION"] = "/".join(parts)
     settings.CACHES = new_caches
-    caches._caches.caches[DEFAULT_CACHE_ALIAS] = _create_cache(DEFAULT_CACHE_ALIAS)
+    # Django 4.1+ removed _create_cache and reworked the cache handler. Reset it
+    # so the new per-worker LOCATION takes effect, mirroring what Django's own
+    # django.test.signals.clear_cache_handlers does for the CACHES setting.
+    close_caches()
+    caches._settings = caches.settings = caches.configure_settings(None)
+    caches._connections = Local()
 
 
 @pytest.fixture(scope="session")
