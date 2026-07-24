@@ -5,7 +5,7 @@ from uuid import UUID
 import ulid2
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files.storage import get_storage_class
+from thunderstore.core.storage import get_modpack_storage
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.db import models
 from django.db.models import Sum
@@ -103,7 +103,7 @@ class LegacyProfile(TimestampMixin, models.Model):
     )
     file = models.FileField(
         upload_to=get_legacy_profile_file_path,
-        storage=get_storage_class(settings.MODPACK_FILE_STORAGE)(),
+        storage=get_modpack_storage,
     )
     file_sha256 = models.CharField(
         max_length=512,

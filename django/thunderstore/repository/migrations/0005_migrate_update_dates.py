@@ -1,12 +1,12 @@
-from distutils.version import StrictVersion
-
 from django.db import migrations
 from django.db.models import Case, When
 
 
 def get_latest_version(package):
     versions = package.versions.values_list("pk", "version_number")
-    ordered = sorted(versions, key=lambda version: StrictVersion(version[1]))
+    ordered = sorted(
+        versions, key=lambda version: tuple(int(x) for x in version[1].split("."))
+    )
     pk_list = [version[0] for version in reversed(ordered)]
     preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(pk_list)])
     return package.versions.filter(pk__in=pk_list).order_by(preserved).first()

@@ -1,19 +1,33 @@
 from typing import IO, Any, Dict, Optional, TypedDict
 
 from django.conf import settings
+from django.core.files.storage import Storage, storages
 from django.utils.deconstruct import deconstructible
 from storages.backends.s3boto3 import S3Boto3Storage  # type: ignore
 
 from thunderstore.utils.contexts import TemporarySpooledCopy
-from thunderstore.utils.makemigrations import is_migrate_check
 
 
-# These are required as a placeholder stub for migrations, otherwise Django thinks
-# something keeps changing due to settings being different.
-def get_storage_class_or_stub(storage_class: str) -> str:
-    if is_migrate_check():
-        return "thunderstore.utils.makemigrations.StubStorage"
-    return storage_class
+# Model FileFields reference these callables as their `storage` argument. Django
+# serializes a callable storage by import path, so migrations stay stable across
+# environments regardless of which backend STORAGES resolves to at runtime. This
+# replaces the old get_storage_class(settings.X_FILE_STORAGE)() + StubStorage
+# makemigrations workaround, which is no longer possible after Django 5.1 removed
+# get_storage_class and the *_FILE_STORAGE settings.
+def get_package_storage() -> Storage:
+    return storages["package"]
+
+
+def get_modpack_storage() -> Storage:
+    return storages["modpack"]
+
+
+def get_schema_storage() -> Storage:
+    return storages["schema"]
+
+
+def get_blob_storage() -> Storage:
+    return storages["blob"]
 
 
 class S3MirrorConfig(TypedDict):
@@ -24,7 +38,7 @@ class S3MirrorConfig(TypedDict):
     location: str
     custom_domain: str
     endpoint_url: str
-    secure_urls: bool
+    url_protocol: str  # django-storages 1.14: replaces the secure_urls bool
     file_overwrite: bool
     default_acl: str
     object_parameters: Dict

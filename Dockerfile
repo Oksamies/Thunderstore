@@ -6,7 +6,7 @@ RUN yarn install --frozen-lockfile
 COPY ./builder /app
 RUN yarn run build
 
-FROM python:3.8-slim-bullseye@sha256:e191a71397fd61fbddb6712cd43ef9a2c17df0b5e7ba67607128554cd6bff267
+FROM python:3.14-slim-trixie@sha256:cea0e6040540fb2b965b6e7fb5ffa00871e632eef63719f0ea54bca189ce14a6
 
 LABEL org.opencontainers.image.source="https://github.com/thunderstore-io/Thunderstore"
 
@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
 COPY ./python-packages/ /python-packages
 COPY ./django/pyproject.toml ./django/poetry.lock /app/
 
-RUN pip install -U pip setuptools wheel virtualenv==20.7.2 poetry~=1.4.2 --no-cache-dir && \
+RUN pip install -U pip setuptools wheel poetry~=2.4.0 --no-cache-dir && \
     poetry config virtualenvs.create false && \
     poetry config installer.max-workers 1 && \
     if [ $BUILD_INSTALL_EXTRAS = true ] ; then \

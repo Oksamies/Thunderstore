@@ -11,11 +11,28 @@ from random import choices
 from string import ascii_lowercase, ascii_uppercase, digits
 
 from django.contrib.auth.hashers import PBKDF2PasswordHasher
-from django.utils import baseconv
 
 # Token prefixes, starting with two letter company identifier and
 # ending with one letter token type identifier.
 SA_TOKEN = "tss"  # Service Account API token
+
+# Base62 alphabet and encoder, replicating the removed django.utils.baseconv.base62
+# byte-for-byte (Django 5.0 removed baseconv). Keeping identical output means
+# checksums of previously issued tokens still match.
+_BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+
+def base62_encode(value: int) -> str:
+    if value < 0:
+        raise ValueError("Only non-negative integers are supported")
+    if value == 0:
+        return _BASE62_ALPHABET[0]
+    base = len(_BASE62_ALPHABET)
+    digits_out = []
+    while value:
+        value, remainder = divmod(value, base)
+        digits_out.append(_BASE62_ALPHABET[remainder])
+    return "".join(reversed(digits_out))
 
 
 def get_service_account_api_token() -> str:
@@ -30,7 +47,7 @@ def get_service_account_api_token() -> str:
 
 def get_token_checksum(payload: str, min_length: int = 6) -> str:
     checksum = crc32(payload.encode())
-    b62 = baseconv.base62.encode(checksum)
+    b62 = base62_encode(checksum)
     return b62.rjust(min_length, "0")
 
 

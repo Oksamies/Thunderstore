@@ -1,8 +1,8 @@
-from django.contrib.postgres.fields import CICharField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Manager
 
+from thunderstore.repository.fields import CICharField
 from thunderstore.repository.models.package import Package
 from thunderstore.repository.validators import PackageReferenceComponentValidator
 

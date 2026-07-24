@@ -1,10 +1,9 @@
-from distutils.version import StrictVersion
-
 from rest_framework.fields import Field
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from thunderstore.community.models import PackageListing
 from thunderstore.repository.models import PackageVersion
+from thunderstore.repository.version_number import PackageVersionNumber
 
 
 class PackageVersionSerializer(ModelSerializer):
@@ -75,7 +74,7 @@ class PackageListingSerializer(ModelSerializer):
     def get_versions(self, instance):
         versions = sorted(
             [v for v in instance.package.versions.all() if v.is_active],
-            key=lambda v: StrictVersion(v.version_number),
+            key=lambda v: PackageVersionNumber(v.version_number),
             reverse=True,
         )
         return PackageVersionSerializer(versions, many=True, context=self.context).data

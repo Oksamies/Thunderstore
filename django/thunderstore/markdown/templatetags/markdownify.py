@@ -1,4 +1,4 @@
-import bleach
+import nh3
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
@@ -17,12 +17,15 @@ md = MarkdownIt("gfm-like")
 def render_markdown(value: str):
     if value.startswith("\ufeff"):
         value = value[1:]
+    # nh3 replaces bleach (unmaintained). Note behavior deltas: nh3 strips
+    # disallowed tags (bleach escaped them) and adds rel="noopener noreferrer"
+    # to links by default. Its allowlists are sets rather than lists.
     return mark_safe(
-        bleach.clean(
-            text=md.render(value.strip()),
-            tags=ALLOWED_TAGS,
-            protocols=ALLOWED_PROTOCOLS,
-            attributes=ALLOWED_ATTRIBUTES,
+        nh3.clean(
+            md.render(value.strip()),
+            tags=set(ALLOWED_TAGS),
+            attributes={tag: set(attrs) for tag, attrs in ALLOWED_ATTRIBUTES.items()},
+            url_schemes=set(ALLOWED_PROTOCOLS),
         ),
     )
 

@@ -1,9 +1,9 @@
-from distutils.version import StrictVersion
 from typing import Optional, Union
 
 import pytest
 
 from thunderstore.repository.models import Package, PackageVersion
+from thunderstore.repository.version_number import PackageVersionNumber
 
 from ..package_reference import PackageReference
 
@@ -196,7 +196,7 @@ def test_hash_matching(a_str, b_str, should_equal):
         ("101", True),
         ("101.asdas.wfefwe", True),
         ("101.3223.2323", False),
-        (StrictVersion("1.0.1"), False),
+        (PackageVersionNumber("1.0.1"), False),
     ),
 )
 def test_init_version_parsing(version_number: str, should_raise: bool):
@@ -206,7 +206,7 @@ def test_init_version_parsing(version_number: str, should_raise: bool):
     else:
         reference = PackageReference("User", "package", version_number)
         version = ".".join(str(x) for x in reference.version.version)
-        assert version == version_number
+        assert version == str(version_number)
 
 
 @pytest.mark.parametrize(

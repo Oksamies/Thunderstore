@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Iterator, Optional
 from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.core.files.storage import get_storage_class
+from thunderstore.core.storage import get_package_storage
 from django.db import models, transaction
 from django.db.models import Manager, Q, QuerySet, Sum, signals
 from django.urls import reverse
@@ -146,7 +146,7 @@ class PackageVersion(VisibilityMixin, AdminLinkMixin):
     # <packagename>.zip
     file = models.FileField(
         upload_to=get_version_zip_filepath,
-        storage=get_storage_class(settings.PACKAGE_FILE_STORAGE)(),
+        storage=get_package_storage,
     )
     file_size = models.PositiveBigIntegerField()
     file_tree = models.ForeignKey(

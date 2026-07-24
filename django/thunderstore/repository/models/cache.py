@@ -2,7 +2,6 @@ import gzip
 import io
 import json
 from datetime import timedelta
-from distutils.version import StrictVersion
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional
 
 from django.core.files.base import ContentFile
@@ -13,6 +12,7 @@ from django.utils import timezone
 
 from thunderstore.community.models import Community, PackageListing
 from thunderstore.core.mixins import S3FileMixin, SafeDeleteMixin
+from thunderstore.repository.version_number import PackageVersionNumber
 from thunderstore.repository.cache import (
     get_package_listing_base_queryset,
     order_package_listing_queryset,
@@ -311,7 +311,7 @@ def _get_sorted_active_versions(
     package: "Package",
 ) -> List["PackageVersion"]:
     versions = [v for v in package.versions.all() if v.is_active]
-    versions.sort(key=lambda v: StrictVersion(v.version_number), reverse=True)
+    versions.sort(key=lambda v: PackageVersionNumber(v.version_number), reverse=True)
     return versions
 
 

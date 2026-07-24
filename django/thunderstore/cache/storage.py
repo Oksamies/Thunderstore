@@ -18,7 +18,8 @@ def get_cache_storage():
             "bucket_name": settings.CACHE_S3_STORAGE_BUCKET_NAME,
             "location": settings.CACHE_S3_LOCATION,
             "custom_domain": settings.CACHE_S3_CUSTOM_DOMAIN,
-            "secure_urls": settings.CACHE_S3_SECURE_URLS,
+            # django-storages 1.14 replaced the secure_urls bool with url_protocol.
+            "url_protocol": "https:" if settings.CACHE_S3_SECURE_URLS else "http:",
             "endpoint_url": settings.CACHE_S3_ENDPOINT_URL,
             "region_name": settings.CACHE_S3_REGION_NAME,
             "default_acl": settings.CACHE_S3_DEFAULT_ACL,

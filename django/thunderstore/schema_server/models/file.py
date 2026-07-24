@@ -2,10 +2,10 @@ import gzip
 import io
 from hashlib import sha256
 
-from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.files.storage import get_storage_class
 from django.db import models
+
+from thunderstore.core.storage import get_schema_storage
 from django.utils import timezone
 
 from thunderstore.core.mixins import S3FileMixin
@@ -18,7 +18,7 @@ def get_schema_file_path(_, filename: str) -> str:
 class SchemaFile(S3FileMixin):
     data = models.FileField(
         upload_to=get_schema_file_path,
-        storage=get_storage_class(settings.SCHEMA_FILE_STORAGE)(),
+        storage=get_schema_storage,
         editable=False,
         blank=True,
         null=True,

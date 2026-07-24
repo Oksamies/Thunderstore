@@ -2,8 +2,21 @@ import json
 import os
 import subprocess
 import sys
-from distutils.util import strtobool
 from typing import List, Union
+
+# Inlined from the removed distutils.util.strtobool (PEP 632, gone in Python
+# 3.12+). Same contract: truthy/falsey strings -> 1/0, ValueError otherwise.
+_TRUE_VALUES = {"y", "yes", "t", "true", "on", "1"}
+_FALSE_VALUES = {"n", "no", "f", "false", "off", "0"}
+
+
+def strtobool(val: str) -> int:
+    normalized = str(val).lower()
+    if normalized in _TRUE_VALUES:
+        return 1
+    if normalized in _FALSE_VALUES:
+        return 0
+    raise ValueError(f"invalid truth value {val!r}")
 
 
 class EnvironmentVariable:

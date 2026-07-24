@@ -1,11 +1,10 @@
 from hashlib import sha256
 
-from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.files.storage import get_storage_class
 from django.db import models
 
 from thunderstore.core.mixins import AdminLinkMixin, SafeDeleteMixin
+from thunderstore.core.storage import get_blob_storage
 
 
 def get_object_file_path(_, filename: str) -> str:
@@ -23,7 +22,7 @@ class DataBlob(SafeDeleteMixin, AdminLinkMixin):
 
     data = models.FileField(
         upload_to=get_object_file_path,
-        storage=get_storage_class(settings.BLOB_FILE_STORAGE)(),
+        storage=get_blob_storage,
         editable=False,
         blank=True,
         null=True,

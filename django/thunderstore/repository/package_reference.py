@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from distutils.version import StrictVersion
 from typing import Dict, Optional, Union
 
 from django.db.models import QuerySet
 from django.utils.functional import cached_property
 
 from thunderstore.repository.models import Package, PackageVersion
+from thunderstore.repository.version_number import PackageVersionNumber
 
 
 class PackageReference:
@@ -14,19 +14,19 @@ class PackageReference:
         self,
         namespace: str,
         name: str,
-        version: Optional[Union[str, StrictVersion]] = None,
+        version: Optional[Union[str, PackageVersionNumber]] = None,
     ):
         """
         :param str namespace: The namespace of the referenced package
         :param str name: The name of the referenced package
         :param version: The version of the referenced package
-        :type version: StrictVersion or str or None
+        :type version: PackageVersionNumber or str or None
         """
         self._namespace: str = namespace
         self._name: str = name
-        if version is not None and not isinstance(version, StrictVersion):
-            version = StrictVersion(version)
-        self._version: Optional[StrictVersion] = version
+        if version is not None and not isinstance(version, PackageVersionNumber):
+            version = PackageVersionNumber(version)
+        self._version: Optional[PackageVersionNumber] = version
 
     def __str__(self) -> str:
         if self.version:
@@ -46,7 +46,7 @@ class PackageReference:
         return self._name
 
     @property
-    def version(self) -> Optional[StrictVersion]:
+    def version(self) -> Optional[PackageVersionNumber]:
         return self._version
 
     @property
@@ -142,7 +142,7 @@ class PackageReference:
                 raise ValueError(f"Invalid package reference string: {unparsed}")
             if unparsed.count("-") < 2:
                 raise ValueError(f"Invalid package reference string: {unparsed}")
-            version = StrictVersion(version_string)
+            version = PackageVersionNumber(version_string)
             unparsed = unparsed[: -(len(version_string) + 1)]
 
         name = unparsed.split("-")[-1]
@@ -166,7 +166,7 @@ class PackageReference:
         return self
 
     def with_version(
-        self, version: Optional[Union[str, StrictVersion]]
+        self, version: Optional[Union[str, PackageVersionNumber]]
     ) -> PackageReference:
         """
         Return this same package reference with a different version

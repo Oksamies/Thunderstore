@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, Tuple
 import environ
 from django.http import HttpRequest
 
-from thunderstore.core.storage import S3MirrorConfig, get_storage_class_or_stub
+from thunderstore.core.storage import S3MirrorConfig
 from thunderstore.core.utils import validate_filepath_prefix
 from thunderstore.plugins.registry import plugin_registry
 
@@ -207,6 +207,11 @@ DB_CLIENT_CERT = env.str("DB_CLIENT_CERT")
 DB_CLIENT_KEY = env.str("DB_CLIENT_KEY")
 DB_SERVER_CA = env.str("DB_SERVER_CA")
 
+# Preserve the historical implicit AutoField default (integer PKs) and silence
+# models.W042. Do NOT switch to BigAutoField without intending to migrate every
+# primary key.
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 
 def load_db_certs():
     if not DB_CERT_DIR:
@@ -369,7 +374,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static_built"),
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Static/media file backends are configured via the STORAGES dict; see the
+# STORAGE section further below.
 
 
 # Internationalization
@@ -380,8 +386,6 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
@@ -682,6 +686,9 @@ AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "max-age=2592000",  # 30 days
 }
 AWS_S3_SECURE_URLS = env.bool("AWS_S3_SECURE_URLS")
+# django-storages 1.14 reads AWS_S3_URL_PROTOCOL instead of the old
+# AWS_S3_SECURE_URLS for the global S3 backend; derive it to preserve behavior.
+AWS_S3_URL_PROTOCOL = "https:" if AWS_S3_SECURE_URLS else "http:"
 
 # Usermedia S3 settings
 
@@ -776,7 +783,7 @@ if all(
             "location": validate_filepath_prefix(env.str("MIRROR_S3_LOCATION")),
             "custom_domain": env.str("MIRROR_S3_CUSTOM_DOMAIN"),
             "endpoint_url": env.str("MIRROR_S3_ENDPOINT_URL"),
-            "secure_urls": env.bool("MIRROR_S3_SECURE_URLS"),
+            "url_protocol": "https:" if env.bool("MIRROR_S3_SECURE_URLS") else "http:",
             "file_overwrite": env.bool("MIRROR_S3_FILE_OVERWRITE"),
             "default_acl": env.str("MIRROR_S3_DEFAULT_ACL"),
             "object_parameters": AWS_S3_OBJECT_PARAMETERS,
@@ -799,13 +806,29 @@ if all(
 
 ALLOWED_CDNS = env.list("ALLOWED_CDNS")
 
-# Storage Defaults
-DEFAULT_FILE_STORAGE = get_storage_class_or_stub(DEFAULT_FILE_STORAGE)
-THUMBNAIL_DEFAULT_STORAGE = get_storage_class_or_stub(THUMBNAIL_DEFAULT_STORAGE)
-PACKAGE_FILE_STORAGE = get_storage_class_or_stub(PACKAGE_FILE_STORAGE)
-MODPACK_FILE_STORAGE = get_storage_class_or_stub(MODPACK_FILE_STORAGE)
-SCHEMA_FILE_STORAGE = get_storage_class_or_stub(SCHEMA_FILE_STORAGE)
-BLOB_FILE_STORAGE = get_storage_class_or_stub(BLOB_FILE_STORAGE)
+# Storage backends (Django 5.1+ STORAGES dict). The per-purpose backend paths
+# were resolved above from the environment (FileSystem / S3Boto3 / MirroredS3).
+# Models attach these via module-level callables in thunderstore.core.storage
+# (get_package_storage, ...), so migrations serialize a stable reference rather
+# than the environment-specific backend — this replaces the old StubStorage
+# makemigrations workaround.
+STORAGES = {
+    "default": {"BACKEND": DEFAULT_FILE_STORAGE},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "package": {"BACKEND": PACKAGE_FILE_STORAGE},
+    "modpack": {"BACKEND": MODPACK_FILE_STORAGE},
+    "schema": {"BACKEND": SCHEMA_FILE_STORAGE},
+    "blob": {"BACKEND": BLOB_FILE_STORAGE},
+    "easy_thumbnails": {"BACKEND": THUMBNAIL_DEFAULT_STORAGE},
+}
+THUMBNAIL_DEFAULT_STORAGE_ALIAS = "easy_thumbnails"
+
+# The per-purpose *_FILE_STORAGE strings were only intermediates for building
+# STORAGES; drop them so no removed-in-5.1 storage settings linger.
+del DEFAULT_FILE_STORAGE, THUMBNAIL_DEFAULT_STORAGE, PACKAGE_FILE_STORAGE
+del MODPACK_FILE_STORAGE, SCHEMA_FILE_STORAGE, BLOB_FILE_STORAGE
 
 # Social auth
 

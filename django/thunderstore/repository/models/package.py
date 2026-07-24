@@ -1,6 +1,5 @@
 import re
 import uuid
-from distutils.version import StrictVersion
 from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
@@ -22,6 +21,7 @@ from thunderstore.core.utils import check_validity
 from thunderstore.permissions.mixins import VisibilityMixin
 from thunderstore.permissions.models.visibility import VisibilityFlagsQuerySet
 from thunderstore.permissions.utils import validate_user
+from thunderstore.repository.version_number import PackageVersionNumber
 from thunderstore.repository.consts import PACKAGE_NAME_REGEX
 
 if TYPE_CHECKING:
@@ -178,7 +178,7 @@ class Package(VisibilityMixin, AdminLinkMixin):
         versions = self.versions.filter(is_active=True).values_list(
             "pk", "version_number"
         )
-        ordered = sorted(versions, key=lambda version: StrictVersion(version[1]))
+        ordered = sorted(versions, key=lambda version: PackageVersionNumber(version[1]))
         pk_list = [version[0] for version in reversed(ordered)]
         preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(pk_list)])
         return (
